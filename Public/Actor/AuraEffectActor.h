@@ -3,11 +3,27 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "ActiveGameplayEffectHandle.h"
 #include "GameFramework/Actor.h"
 #include "AuraEffectActor.generated.h"
 
 class UGameplayEffect;
 //class USphereComponent;
+
+UENUM(BlueprintType)
+enum class EEffectApplicationPolicy   //用于判断效果应用方式
+{
+	ApplyOnOverlap,
+	ApplyOnEndOverlap,
+	DoNotApply
+};
+
+UENUM(BlueprintType)
+enum class EEffectRemovalPolicy   //用于判断是否移除无限持续效果
+{
+	RemoveOnEndOverlap,
+	DoNotRemove
+};
 
 UCLASS()
 class AURA_API AAuraEffectActor : public AActor
@@ -30,12 +46,39 @@ protected:
 	UFUNCTION(BlueprintCallable)
 	void ApplyEffectToTarget(AActor* TargetActor,TSubclassOf<UGameplayEffect>GameplayEffectClass);
 
+	UFUNCTION(BlueprintCallable)
+	void OnOverlap(AActor* TargetActor);
+
+	UFUNCTION(BlueprintCallable)
+	void OnEndOverlay(AActor*TargetActor);
+
+	UPROPERTY(EditAnywhere,BlueprintReadOnly,Category="Effects")
+	bool bDestroyOnEffectRemoval = false;
+	
 	UPROPERTY(EditAnywhere,BlueprintReadOnly,Category="Effects")
 	TSubclassOf<UGameplayEffect>InstantGameplayEffectClass;  //瞬间效果:立即生效且只生效一次
+	UPROPERTY(EditAnywhere,BlueprintReadOnly,Category="Effects")
+	EEffectApplicationPolicy InstantEffectApplicationPolicy = EEffectApplicationPolicy::DoNotApply;
 	
 	UPROPERTY(EditAnywhere,BlueprintReadOnly,Category="Effects")
 	TSubclassOf<UGameplayEffect>DurationGameplayEffectClass;//持续效果:持续一段设定好的时间，时间过了之后效果消失
-/**
+	UPROPERTY(EditAnywhere,BlueprintReadOnly,Category="Effects")
+	EEffectApplicationPolicy DurationEffectApplicationPolicy = EEffectApplicationPolicy::DoNotApply;
+
+	UPROPERTY(EditAnywhere,BlueprintReadOnly,Category="Effects")
+	TSubclassOf<UGameplayEffect>InfiniteGameplayEffectClass;   //无限持续时间效果
+	UPROPERTY(EditAnywhere,BlueprintReadOnly,Category="Effects")
+	EEffectApplicationPolicy InfinityEffectApplicationPolicy = EEffectApplicationPolicy::DoNotApply;
+	UPROPERTY(EditAnywhere,BlueprintReadOnly,Category="Effects")
+	EEffectRemovalPolicy InfinityEffectRemovalPolicy = EEffectRemovalPolicy::RemoveOnEndOverlap;
+
+	UPROPERTY(EditAnywhere,BlueprintReadOnly,Category="Effects")
+	float EffectLevel = 1.f;
+
+	TMap<FActiveGameplayEffectHandle,UAbilitySystemComponent*>ActiveEffectHandles;
+
+	
+	/**
 private:
 	UPROPERTY(VisibleAnywhere)
 	TObjectPtr<USphereComponent> Sphere;
