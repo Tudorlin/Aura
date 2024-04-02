@@ -4,6 +4,7 @@
 #include "Character/AuraCharacter.h"
 
 #include "AbilitySystemComponent.h"
+#include "AbilitySystem/AuraAbilitySystemComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Player/AuraPlayerController.h"
 #include "Player/AuraPlayerState.h"
@@ -38,7 +39,7 @@ void AAuraCharacter::InitAbilityActorInfo()
 	AAuraPlayerState* AuraPlayerState = GetPlayerState<AAuraPlayerState>();
 	check(AuraPlayerState);
 	AuraPlayerState->GetAbilitySystemComponent()->InitAbilityActorInfo(AuraPlayerState,this);//OwnnerActor是playerstate，AvatarActor是character本身
-
+	Cast<UAuraAbilitySystemComponent>(AuraPlayerState->GetAbilitySystemComponent())->AbilityActorInfoSet();  //转化成Aura能力组件调用信息设置函数
 	AbilitySystemComponent = AuraPlayerState->GetAbilitySystemComponent();  //初始化完成后给character身上的能力组件和属性集赋值。
 	AttributeSet = AuraPlayerState->GetAttributeSet();
 
@@ -49,4 +50,13 @@ void AAuraCharacter::InitAbilityActorInfo()
 			AuraHUD->InitOverlay(AuraPlayerController,AuraPlayerState,AbilitySystemComponent,AttributeSet);  //通过调用AuraHUD里的初始化函数将角色的各种属性传递到HUD中，进而与控件进行通信
 		}
 	}
+	//InitializePrimaryAttributes();属性初始化合并成一个函数了
+	InitializeDefaultAttributes();
+}
+
+int32 AAuraCharacter::GetPlayerLevel()
+{
+	const AAuraPlayerState* AuraPlayerState = GetPlayerState<AAuraPlayerState>();
+	check(AuraPlayerState);
+	return AuraPlayerState->GetPlayerLevel();
 }

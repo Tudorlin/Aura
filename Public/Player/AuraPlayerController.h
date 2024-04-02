@@ -36,6 +36,6 @@ private:
 
 	void CursorTrace();  //光标的检测函数,在本地每帧调用
 
-	TObjectPtr<IEnemyInterface> LastActor;
-	TObjectPtr<IEnemyInterface> ThisActor;
+	IEnemyInterface* LastActor;   //TObjectPtr只有继承与UObject的类才能用，为什么突然不能用了还未知
+	IEnemyInterface* ThisActor;
 };

@@ -3,6 +3,7 @@
 
 #include "UI/WidgetController/OverlayWidgetController.h"
 
+#include "AbilitySystem/AuraAbilitySystemComponent.h"
 #include "AbilitySystem/AuraAttributeSet.h"
 
 void UOverlayWidgetController::BroadcastInitialValue()   //初始化的时候被调用，广播属性初始值
@@ -17,32 +18,58 @@ void UOverlayWidgetController::BroadcastInitialValue()   //初始化的时候被
 void UOverlayWidgetController::BindCallbacksDependencies()   //绑定属性变化的回调,绑定的时机为AuraHUD中对OverlayWidgetController初始完成之后
 {
 	const UAuraAttributeSet* AuraAttributeSet = CastChecked<UAuraAttributeSet>(AttributesSet);
+	//***************************绑定改为Lambda表达式
+	// AbilitySystemComponent->GetGameplayAttributeValueChangeDelegate(
+	// 	AuraAttributeSet->GetHealthAttribute()).AddUObject(this,&UOverlayWidgetController::HealthChanged);  //注意之前宏定义的属性访问器，GetHealth()返回的是一个浮点数，而这里这个函数返回的是一个属性
+	// AbilitySystemComponent->GetGameplayAttributeValueChangeDelegate(
+	// 	AuraAttributeSet->GetMaxHealthAttribute()).AddUObject(this,&UOverlayWidgetController::MaxHealthChanged);
+	// AbilitySystemComponent->GetGameplayAttributeValueChangeDelegate(
+	// 	AuraAttributeSet->GetManaAttribute()).AddUObject(this,&UOverlayWidgetController::ManaChanged);
+	// AbilitySystemComponent->GetGameplayAttributeValueChangeDelegate(
+	// 	AuraAttributeSet->GetMaxManaAttribute()).AddUObject(this,&UOverlayWidgetController::MaxManaChanged);
+	//*************************************************************
 	AbilitySystemComponent->GetGameplayAttributeValueChangeDelegate(
-		AuraAttributeSet->GetHealthAttribute()).AddUObject(this,&UOverlayWidgetController::HealthChanged);  //注意之前宏定义的属性访问器，GetHealth()返回的是一个浮点数，而这里这个函数返回的是一个属性
+		AuraAttributeSet->GetHealthAttribute()).AddLambda([this](const FOnAttributeChangeData& Data){ OnHealthChanged.Broadcast(Data.NewValue); });
 	AbilitySystemComponent->GetGameplayAttributeValueChangeDelegate(
-		AuraAttributeSet->GetMaxHealthAttribute()).AddUObject(this,&UOverlayWidgetController::MaxHealthChanged);
+		AuraAttributeSet->GetMaxHealthAttribute()).AddLambda([this](const FOnAttributeChangeData& Data){ OnMaxHealthChanged.Broadcast(Data.NewValue); });
 	AbilitySystemComponent->GetGameplayAttributeValueChangeDelegate(
-		AuraAttributeSet->GetManaAttribute()).AddUObject(this,&UOverlayWidgetController::ManaChanged);
+		AuraAttributeSet->GetManaAttribute()).AddLambda([this](const FOnAttributeChangeData& Data){ OnManaChanged.Broadcast(Data.NewValue); });
 	AbilitySystemComponent->GetGameplayAttributeValueChangeDelegate(
-		AuraAttributeSet->GetMaxManaAttribute()).AddUObject(this,&UOverlayWidgetController::MaxManaChanged);
+		AuraAttributeSet->GetMaxManaAttribute()).AddLambda([this](const FOnAttributeChangeData& Data){ OnMaxManaChanged.Broadcast(Data.NewValue); });
+
+	
+	Cast<UAuraAbilitySystemComponent>(AbilitySystemComponent)->EffectAssetTags.AddLambda(   //牢记AuraWidgetController中有包括能力组件，属性集，玩家控制器和玩家状态用于角色间的通信
+	[this](const FGameplayTagContainer& AssetTags)  //绑定到Lambda表达式，即匿名函数，是c++11的语法，详情可以找资料看看;如果要调用成员函数，可以捕获this指针，也可以将成员函数设置为静态
+	{
+		for(const FGameplayTag& tag : AssetTags)   //目前的作用:位于GE中的tag会被添加到容器中，然后通过标签获取数据表中的行，然后打印出相应的信息
+		{
+			FGameplayTag MessageTag = FGameplayTag::RequestGameplayTag("Message");  //获取一个与Message对应的标签，如果找不到则返回空的FGameplayTag
+			if(tag.MatchesTag(MessageTag))   //检查当前标签是否与MessageTag匹配
+			{
+				const FUIWidgetRow* Row = GetDataTableRowByTag<FUIWidgetRow>(MessageWidgetDataTable,tag);
+				MessageWidgetRowDelegate.Broadcast(*Row);
+			}
+		}
+	}
+	);
 }
 
-void UOverlayWidgetController::HealthChanged(const FOnAttributeChangeData& Data) const  
-{
-	OnHealthChanged.Broadcast(Data.NewValue);
-}
-
-void UOverlayWidgetController::MaxHealthChanged(const FOnAttributeChangeData& Data) const
-{
-	OnMaxHealthChanged.Broadcast(Data.NewValue);
-}
-
-void UOverlayWidgetController::ManaChanged(const FOnAttributeChangeData& Data) const
-{
-	OnManaChanged.Broadcast(Data.NewValue);
-}
-
-void UOverlayWidgetController::MaxManaChanged(const FOnAttributeChangeData& Data) const
-{
-	OnMaxManaChanged.Broadcast(Data.NewValue);
-}
+// void UOverlayWidgetController::HealthChanged(const FOnAttributeChangeData& Data) const  
+// {
+// 	OnHealthChanged.Broadcast(Data.NewValue);
+// }
+//
+// void UOverlayWidgetController::MaxHealthChanged(const FOnAttributeChangeData& Data) const
+// {
+// 	OnMaxHealthChanged.Broadcast(Data.NewValue);
+// }
+//
+// void UOverlayWidgetController::ManaChanged(const FOnAttributeChangeData& Data) const
+// {
+// 	OnManaChanged.Broadcast(Data.NewValue);
+// }
+//
+// void UOverlayWidgetController::MaxManaChanged(const FOnAttributeChangeData& Data) const
+// {
+// 	OnMaxManaChanged.Broadcast(Data.NewValue);
+// }

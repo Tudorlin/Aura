@@ -4,13 +4,15 @@
 #include "CoreMinimal.h"
 #include "AbilitySystemInterface.h"
 #include "GameFramework/Character.h"
+#include "Interfaction/CombatInterface.h"
 #include "AuraCharacterBase.generated.h"
 
+class UGameplayEffect;
 class UAttributeSet;
 class UAbilitySystemComponent;
 
 UCLASS()
-class AURA_API AAuraCharacterBase : public ACharacter,public IAbilitySystemInterface
+class AURA_API AAuraCharacterBase : public ACharacter,public IAbilitySystemInterface,public ICombatInterface
 {
 	GENERATED_BODY()
 
@@ -32,4 +34,22 @@ protected:
 
 	UPROPERTY()
 	TObjectPtr<UAttributeSet> AttributeSet;
+
+	virtual void InitAbilityActorInfo();
+
+	UPROPERTY(BlueprintReadOnly,EditAnywhere,Category="Attributes")
+	TSubclassOf<UGameplayEffect>DefaultPrimaryAttributes;
+
+	UPROPERTY(BlueprintReadOnly,EditAnywhere,Category="Attributes")
+	TSubclassOf<UGameplayEffect>DefaultSecondaryAttributes;
+
+	UPROPERTY(BlueprintReadOnly,EditAnywhere,Category="Attributes")
+	TSubclassOf<UGameplayEffect>DefaultVitalAttributes;
+
+	//void InitializePrimaryAttributes() const;     由于两个初始化函数差不多，所以定义为传入一个GameplayEffect类作参数的函数
+	//void InitializeSecondaryAttributes() const;
+
+	void ApplyEffectSpec(TSubclassOf<UGameplayEffect> GameplayEffectClass,float level) const;
+	void InitializeDefaultAttributes();
+	
 };
