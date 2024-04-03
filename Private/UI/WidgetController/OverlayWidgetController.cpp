@@ -43,7 +43,7 @@ void UOverlayWidgetController::BindCallbacksDependencies()   //绑定属性变�
 	{
 		for(const FGameplayTag& tag : AssetTags)   //目前的作用:位于GE中的tag会被添加到容器中，然后通过标签获取数据表中的行，然后打印出相应的信息
 		{
-			FGameplayTag MessageTag = FGameplayTag::RequestGameplayTag("Message");  //获取一个与Message对应的标签，如果找不到则返回空的FGameplayTag
+			FGameplayTag MessageTag = FGameplayTag::RequestGameplayTag("Message");  //获取一个与Message对应的标签，在项目设置中定义了此标签，用于查找指定属性，如果找不到则返回空的FGameplayTag
 			if(tag.MatchesTag(MessageTag))   //检查当前标签是否与MessageTag匹配
 			{
 				const FUIWidgetRow* Row = GetDataTableRowByTag<FUIWidgetRow>(MessageWidgetDataTable,tag);

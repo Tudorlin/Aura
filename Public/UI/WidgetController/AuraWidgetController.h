@@ -41,6 +41,7 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void SetWidgetControllerParams(const FWidgetControllerParams& WCParams);  //初始化控制器中的变量
 
+	UFUNCTION(BlueprintCallable)
 	virtual void BroadcastInitialValue();    //广播数值函数
 
 	virtual void BindCallbacksDependencies();
