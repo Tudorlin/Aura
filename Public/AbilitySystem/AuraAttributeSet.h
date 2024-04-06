@@ -46,6 +46,10 @@ struct FEffectProperties
 	UAbilitySystemComponent* TargetASC = nullptr;
 	
 };
+//typedef TBaseStaticDelegateInstance<FGameplayAttribute(), FDefaultDelegateUserPolicy>::FFuncPtr FAttributeFuncPtr;
+template<class T>
+using TStaticFunPtr = typename TBaseStaticDelegateInstance<T,FDefaultDelegateUserPolicy>::FFuncPtr;//TBaseStaticDelegateInstance，的作用是将静态函数绑定到委托上，这里作用是将对应的属性访问器与对应Tag关联
+//举个例子：假设有一个FAttributeSignature 类型的委托 StrengthDelegate,它的功能就类似于实现: StrengthDelegate.AddStatic(UAuraAttributes::GetStrengthAttribute)
 
 UCLASS()
 class AURA_API UAuraAttributeSet : public UAttributeSet
@@ -56,6 +60,8 @@ public:
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 	virtual void PreAttributeChange(const FGameplayAttribute& Attribute, float& NewValue) override;
 	virtual void PostGameplayEffectExecute(const FGameplayEffectModCallbackData& Data) override;
+
+	TMap<FGameplayTag,TStaticFunPtr<FGameplayAttribute()>> TagToAttributes;       //本质是GameplayTag与委托的Map
 
 	/*********主要属性值***********/
 	UPROPERTY(BlueprintReadOnly,ReplicatedUsing=OnRep_Strength,Category="Primary Attributes")     //力量

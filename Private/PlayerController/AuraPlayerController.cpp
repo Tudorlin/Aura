@@ -2,13 +2,21 @@
 
 
 #include "..\..\Public\Player\AuraPlayerController.h"
+
+#include "AbilitySystemBlueprintLibrary.h"
+#include "AuraGameplayTags.h"
 #include "EnhancedInputSubsystems.h"
-#include"EnhancedInputComponent.h"
+#include "NavigationPath.h"
+#include "NavigationSystem.h"
+#include "AbilitySystem/AuraAbilitySystemComponent.h"
+#include "Components/SplineComponent.h"
+#include "Input/AuraInputComponent.h"
 #include "Interfaction/EnemyInterface.h"
 
 AAuraPlayerController::AAuraPlayerController()
 {
 	bReplicates = true;//属性复制，用于多人游戏将服务器实体发生的改变告知其他客户端
+	Spline = CreateDefaultSubobject<USplineComponent>("Spline");
 }
 
 void AAuraPlayerController::BeginPlay()
@@ -32,33 +40,151 @@ void AAuraPlayerController::PlayerTick(float DeltaTime)
 {
 	Super::PlayerTick(DeltaTime);
 	CursorTrace();
+	AutoRun();
 }
 
 void AAuraPlayerController::CursorTrace()
 {
-	FHitResult CursorHit;
 	GetHitResultUnderCursor(ECC_Visibility,false,CursorHit); //获取光标下的碰撞结果，储存在CursorHit中，由于只是简单碰撞所以性能消耗并不大
 	if(!CursorHit.bBlockingHit) return;
 
 	LastActor = ThisActor;
 	ThisActor = Cast<IEnemyInterface>(CursorHit.GetActor());
 
-	if(LastActor==nullptr)
+	// if(LastActor==nullptr)
+	// {
+	// 	if(ThisActor)
+	// 		ThisActor->HighLightActor();   //鼠标点击的上一个actor为空，当前有效，高亮当前即可，如果两个都无效则无事发生
+	// }
+	// else
+	// {
+	// 	if(ThisActor==nullptr)
+	// 		LastActor->UnHighLightActor();  //如果当前没检测到actor，则将上一个检测到的actor的高光去掉
+	// 	else
+	// 	{
+	// 		if(LastActor!=ThisActor)   //两个都有效时判断是不是同一个actor，如果不是则取消上一个的高亮并高亮当前actor，反之则无事发生。
+	// 		{
+	// 			LastActor->UnHighLightActor();
+	// 			ThisActor->HighLightActor();
+	// 		}
+	// 	}
+	// }    简化代码:
+	if(LastActor!=ThisActor)
 	{
-		if(ThisActor)
-			ThisActor->HighLightActor();   //鼠标点击的上一个actor为空，当前有效，高亮当前即可，如果两个都无效则无事发生
+		if(LastActor) LastActor->UnHighLightActor();
+		if(ThisActor) ThisActor->HighLightActor();
+	}
+}
+
+void AAuraPlayerController::AbilityInputTagPressed(FGameplayTag InputTag)
+{
+	//GEngine->AddOnScreenDebugMessage(1, 3.f, FColor::Red, *InputTag.ToString());
+	if(InputTag.MatchesTagExact(FAuraGameplayTags::Get().InputTag_LMB))
+	{
+		bTargeting = ThisActor ? true : false;
+		bAutoRunning = false;
+	}
+}
+
+void AAuraPlayerController::AbilityInputTagReleased(FGameplayTag InputTag)
+{
+	//GEngine->AddOnScreenDebugMessage(2, 3.f, FColor::Blue, *InputTag.ToString());
+	//if(GetASC()==nullptr) return;
+	//GetASC()->AbilityInputTagReleased(InputTag);
+	if(!InputTag.MatchesTagExact(FAuraGameplayTags::Get().InputTag_LMB))
+	{
+		if(GetASC())
+		{
+			GetASC()->AbilityInputTagReleased(InputTag);
+		}
+		return;
+	}
+	if(bTargeting)
+	{
+		if(GetASC())
+		{
+			GetASC()->AbilityInputTagReleased(InputTag);
+		}
+	}												//作用同下
+	else
+	{
+		APawn* ControlledPawn = GetPawn();
+		if(FollowTime<=ShortPressThreshold)
+		{
+			if(UNavigationPath* NavPath = UNavigationSystemV1::FindPathToLocationSynchronously(
+				this,ControlledPawn->GetActorLocation(),CachedDestination))  //这里的目标位置在下面那个函数，即鼠标点击时设置了，获取从角色到目标点的路线
+			{
+				Spline->ClearSplinePoints();
+				for(const FVector& Point : NavPath->PathPoints)
+				{
+					Spline->AddSplinePoint(Point,ESplineCoordinateSpace::World);
+					//DrawDebugSphere(GetWorld(),Point,8.f,8,FColor::Red,false,5.f);
+				}
+				CachedDestination = NavPath->PathPoints[NavPath->PathPoints.Num()-1];   //选择最后一个点作为最终目标，防止角色乱跑的情况出现
+				bAutoRunning = true;
+			}
+		}
+		FollowTime = 0.f;
+		bTargeting = false;
+	}
+}
+
+void AAuraPlayerController::AbilityInputTagHeld(FGameplayTag InputTag)
+{
+	//GEngine->AddOnScreenDebugMessage(3, 3.f, FColor::Green, *InputTag.ToString());
+	//if(GetASC()==nullptr) return;
+	//GetASC()->AbilityInputTagHeld(InputTag);
+	if(!InputTag.MatchesTagExact(FAuraGameplayTags::Get().InputTag_LMB))  //除了鼠标左键的其他案件正常触发技能
+	{
+		if(GetASC())
+		{
+			GetASC()->AbilityInputTagHeld(InputTag);
+		}
+		return;
+	}
+	if(bTargeting)
+	{
+		if(GetASC())
+		{
+			GetASC()->AbilityInputTagHeld(InputTag);
+		}
 	}
 	else
 	{
-		if(ThisActor==nullptr)
-			LastActor->UnHighLightActor();  //如果当前没检测到actor，则将上一个检测到的actor的高光去掉
-		else
+		FollowTime +=GetWorld()->GetDeltaSeconds();
+		
+		if(CursorHit.bBlockingHit)
 		{
-			if(LastActor!=ThisActor)   //两个都有效时判断是不是同一个actor，如果不是则取消上一个的高亮并高亮当前actor，反之则无事发生。
-			{
-				LastActor->UnHighLightActor();
-				ThisActor->HighLightActor();
-			}
+			CachedDestination = CursorHit.ImpactPoint;
+		}
+		if(APawn* ControlledPawn = GetPawn())
+		{
+			const FVector WorldDirection = (CachedDestination-ControlledPawn->GetActorLocation()).GetSafeNormal();
+			ControlledPawn->AddMovementInput(WorldDirection);
+		}
+	}
+}
+
+UAuraAbilitySystemComponent* AAuraPlayerController::GetASC()
+{
+	if(AuraAbilitySystemComponent==nullptr)
+		AuraAbilitySystemComponent = Cast<UAuraAbilitySystemComponent>(UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(GetPawn<APawn>()));
+	return AuraAbilitySystemComponent;
+}
+
+void AAuraPlayerController::AutoRun()
+{
+	if(!bAutoRunning) return;
+	if(APawn* ControlledPawn = GetPawn())
+	{
+		const FVector LocationOnSpline = Spline->FindLocationClosestToWorldLocation(ControlledPawn->GetActorLocation(),ESplineCoordinateSpace::World);
+		const FVector Direction = Spline->FindDirectionClosestToWorldLocation(LocationOnSpline,ESplineCoordinateSpace::World);
+		ControlledPawn->AddMovementInput(Direction);
+
+		const float DistanceToDestination = (LocationOnSpline-CachedDestination).Length();
+		if(DistanceToDestination <=AutoRunAcceptRadius)
+		{
+			bAutoRunning = false;
 		}
 	}
 }
@@ -67,8 +193,13 @@ void AAuraPlayerController::SetupInputComponent()
 {
 	Super::SetupInputComponent();
 
-	UEnhancedInputComponent* EnhancedInputComponent = CastChecked<UEnhancedInputComponent>(InputComponent);//castcheck会自动检查值的有效性，无效会崩溃，将inputcomponent投射到增强输入组件
-	EnhancedInputComponent->BindAction(MoveAction,ETriggerEvent::Triggered,this,&AAuraPlayerController::Move);//传入moveaction,触发事件，目标（控制器本身），绑定的函数
+	//UEnhancedInputComponent* EnhancedInputComponent = CastChecked<UEnhancedInputComponent>(InputComponent);//castcheck会自动检查值的有效性，无效会崩溃，将inputcomponent投射到增强输入组件
+	//EnhancedInputComponent->BindAction(MoveAction,ETriggerEvent::Triggered,this,&AAuraPlayerController::Move);//传入moveaction,触发事件，目标（控制器本身），绑定的函数
+	//这里将输入组件改成了自己创建的AuraInputComponent,其中创建了一个新的绑定函数,功能是通过Tag检索应该绑定的回调函数
+
+	UAuraInputComponent* AuraInputComponent = CastChecked<UAuraInputComponent>(InputComponent);
+	AuraInputComponent->BindAction(MoveAction,ETriggerEvent::Triggered,this,&AAuraPlayerController::Move);
+	AuraInputComponent->BindAbilityAction(InputConfig,this,&ThisClass::AbilityInputTagPressed,&ThisClass::AbilityInputTagReleased,&ThisClass::AbilityInputTagHeld);
 }
 
 void AAuraPlayerController::Move(const FInputActionValue& InputActionValue)

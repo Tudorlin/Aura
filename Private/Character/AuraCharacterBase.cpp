@@ -1,6 +1,7 @@
 
 #include "Character/AuraCharacterBase.h"
 #include "AbilitySystemComponent.h"
+#include "AbilitySystem/AuraAbilitySystemComponent.h"
 
 
 AAuraCharacterBase::AAuraCharacterBase()
@@ -24,6 +25,12 @@ void AAuraCharacterBase::BeginPlay()
 	
 }
 
+FVector AAuraCharacterBase::GetCombatSocketLocation()
+{
+	check(Weapon);
+	return Weapon->GetSocketLocation(WeaponTipSocketName);
+}
+
 void AAuraCharacterBase::InitAbilityActorInfo()
 {
 }
@@ -43,6 +50,13 @@ void AAuraCharacterBase::InitializeDefaultAttributes()
 	ApplyEffectSpec(DefaultPrimaryAttributes,1.f);
 	ApplyEffectSpec(DefaultSecondaryAttributes,1.f);
 	ApplyEffectSpec(DefaultVitalAttributes,1.f);
+}
+
+void AAuraCharacterBase::AddCharacterAbility()
+{
+	UAuraAbilitySystemComponent* AuraASC = CastChecked<UAuraAbilitySystemComponent>(AbilitySystemComponent);
+	if(!HasAuthority()) return;  //在服务端上添加能力
+	AuraASC->AddCharacterAbilities(StartupAbilities);
 }
 
 // void AAuraCharacterBase::InitializePrimaryAttributes() const

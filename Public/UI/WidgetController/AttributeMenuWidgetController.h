@@ -29,4 +29,7 @@ protected:
 	
 	UPROPERTY(EditAnywhere)
 	TObjectPtr<UAttributeInfo> AttributeInfo;   //包含Tag信息的那个数组中的类
+
+private:
+	void BroadcastAttributeInfo(const FGameplayTag& AttributeTag,const FGameplayAttribute&Attribute) const;
 };

@@ -5,7 +5,10 @@
 #include "CoreMinimal.h"
 #include "InputActionValue.h"
 #include "GameFramework/PlayerController.h"
+#include "Input/AuraInputConfig.h"
 #include "AuraPlayerController.generated.h"
+class USplineComponent;
+class UAuraAbilitySystemComponent;
 class UInputMappingContext;
 class UInputAction;
 class IEnemyInterface;
@@ -38,4 +41,33 @@ private:
 
 	IEnemyInterface* LastActor;   //TObjectPtr只有继承与UObject的类才能用，为什么突然不能用了还未知
 	IEnemyInterface* ThisActor;
+	
+	FHitResult CursorHit;
+
+	void AbilityInputTagPressed(FGameplayTag InputTag);
+	void AbilityInputTagReleased(FGameplayTag InputTag);
+	void AbilityInputTagHeld(FGameplayTag InputTag);
+
+	UPROPERTY(EditDefaultsOnly,Category="Input")
+	TObjectPtr<UAuraInputConfig> InputConfig;
+
+	UPROPERTY()
+	TObjectPtr<UAuraAbilitySystemComponent> AuraAbilitySystemComponent;
+	
+	UAuraAbilitySystemComponent* GetASC();
+
+	FVector CachedDestination = FVector::ZeroVector;  //目的地位置
+	float FollowTime = 0.f;
+	float ShortPressThreshold = 0.5f;  //最短触发时间，低于此值视为点击一次，超过则视为长按
+	bool bAutoRunning = false;      //大概是判断是否要用简单移动
+	bool bTargeting = false;      //鼠标是否有选中目标，没有目标时就是移动
+
+	UPROPERTY(EditDefaultsOnly)
+	float AutoRunAcceptRadius = 50.f;
+
+	UPROPERTY(VisibleAnywhere)
+	TObjectPtr<USplineComponent> Spline;
+
+	void AutoRun();  //自动行走
+	
 };

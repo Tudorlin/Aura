@@ -7,7 +7,8 @@
 #include "AuraAbilitySystemComponent.generated.h"
 
 
-DECLARE_MULTICAST_DELEGATE_OneParam(FEffectAssetTags,const FGameplayTagContainer&  /*AssetTags*/)
+class UAuraGameplayAbility;
+DECLARE_MULTICAST_DELEGATE_OneParam(FEffectAssetTags, const FGameplayTagContainer& /*AssetTags*/)
 /**
  * 
  */
@@ -19,6 +20,12 @@ public:
 	void AbilityActorInfoSet();
 
 	FEffectAssetTags EffectAssetTags;
+
+	void AddCharacterAbilities(const TArray<TSubclassOf<UGameplayAbility>>& StartupAbilities);
+
+	void AbilityInputTagHeld(const FGameplayTag& InputTag);    //按下按键时尝试激活能力
+	void AbilityInputTagReleased(const FGameplayTag& InputTag);   //松开按键时将能力设置为未激活
 protected:
+	UFUNCTION(Client,Reliable)
 	void EffectApplied(UAbilitySystemComponent*AbilitySystemComponent,const FGameplayEffectSpec& EffectSpec,FActiveGameplayEffectHandle ActiveEffectHandle);
 };
