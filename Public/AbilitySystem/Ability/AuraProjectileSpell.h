@@ -7,6 +7,7 @@
 #include "AuraProjectileSpell.generated.h"
 
 class AAuraProjectile;
+class FGameplayEffect;
 /**
  * 
  */
@@ -20,6 +21,12 @@ protected:
 	virtual void ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo,
 		const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData) override;
 
-	UPROPERTY(EditDefaultsOnly,BlueprintReadOnly)
+	UFUNCTION(BlueprintCallable,Category="Projectile")    //可在蓝图中调用,用于在GE中接受到通知时触发，便于在蒙太奇播放到指定位置时生成火球
+	void SpawnProjectile(const FVector& ProjectileSpawnLocation);
+
+	UPROPERTY(EditDefaultsOnly,BlueprintReadOnly)   
 	TSubclassOf<AAuraProjectile> ProjectileClass;
+
+	UPROPERTY(EditDefaultsOnly,BlueprintReadOnly)
+	TSubclassOf<UGameplayEffect> DamageEffectClass;
 };

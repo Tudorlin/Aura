@@ -71,8 +71,8 @@ void AAuraPlayerController::CursorTrace()
 	// }    简化代码:
 	if(LastActor!=ThisActor)
 	{
-		if(LastActor) LastActor->UnHighLightActor();
-		if(ThisActor) ThisActor->HighLightActor();
+		if(LastActor) LastActor->UnHighlightActor();
+		if(ThisActor) ThisActor->HighlightActor();
 	}
 }
 
@@ -81,7 +81,7 @@ void AAuraPlayerController::AbilityInputTagPressed(FGameplayTag InputTag)
 	//GEngine->AddOnScreenDebugMessage(1, 3.f, FColor::Red, *InputTag.ToString());
 	if(InputTag.MatchesTagExact(FAuraGameplayTags::Get().InputTag_LMB))
 	{
-		bTargeting = ThisActor ? true : false;
+		bTargeting = ThisActor ? true : false;     //ThisActor有效时说明目前有Target
 		bAutoRunning = false;
 	}
 }
@@ -99,14 +99,11 @@ void AAuraPlayerController::AbilityInputTagReleased(FGameplayTag InputTag)
 		}
 		return;
 	}
-	if(bTargeting)
+	if(GetASC())
 	{
-		if(GetASC())
-		{
-			GetASC()->AbilityInputTagReleased(InputTag);
-		}
-	}												//作用同下
-	else
+		GetASC()->AbilityInputTagReleased(InputTag);
+	}//作用同下
+	if(!bTargeting&&!bShiftPressed)   //按下shift时不需要移动操作
 	{
 		APawn* ControlledPawn = GetPawn();
 		if(FollowTime<=ShortPressThreshold)
@@ -142,7 +139,7 @@ void AAuraPlayerController::AbilityInputTagHeld(FGameplayTag InputTag)
 		}
 		return;
 	}
-	if(bTargeting)
+	if(bTargeting||bShiftPressed)     //按下shift时也能发动技能
 	{
 		if(GetASC())
 		{
@@ -200,6 +197,8 @@ void AAuraPlayerController::SetupInputComponent()
 	UAuraInputComponent* AuraInputComponent = CastChecked<UAuraInputComponent>(InputComponent);
 	AuraInputComponent->BindAction(MoveAction,ETriggerEvent::Triggered,this,&AAuraPlayerController::Move);
 	AuraInputComponent->BindAbilityAction(InputConfig,this,&ThisClass::AbilityInputTagPressed,&ThisClass::AbilityInputTagReleased,&ThisClass::AbilityInputTagHeld);
+	AuraInputComponent->BindAction(ShiftAction,ETriggerEvent::Started,this,&AAuraPlayerController::ShiftButtonPressed);
+	AuraInputComponent->BindAction(ShiftAction,ETriggerEvent::Completed,this,&AAuraPlayerController::ShiftButtonReleased);
 }
 
 void AAuraPlayerController::Move(const FInputActionValue& InputActionValue)

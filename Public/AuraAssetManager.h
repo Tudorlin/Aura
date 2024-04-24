@@ -19,5 +19,6 @@ public:
 
 
 protected:
-	virtual void StartInitialLoading() override;  //此函数用于触发游戏启动时一些必要资源加载的操作，包括地图，材质，纹理之类的资源，在此处对Tags进行初始化，以保证游戏开始时tag能初始化完毕。
+	virtual void StartInitialLoading() override;  //此函数用于触发游戏启动时一些必要资源加载的操作，包括地图，材质，纹理之类的资源，在此处对Tags进行初始化，以保证游戏开始时tag能初始化完毕。\
+
 };

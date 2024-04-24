@@ -35,6 +35,18 @@ private:
 	UPROPERTY(EditAnywhere,Category="Input")
 	TObjectPtr<UInputAction>MoveAction;
 
+	UPROPERTY(EditAnywhere,Category="Input")     //按下shift时即使没有选中敌人也能发动技能
+	TObjectPtr<UInputAction>ShiftAction;
+
+	void ShiftButtonPressed() { bShiftPressed = true; }
+	void ShiftButtonReleased() { bShiftPressed = false; }
+
+
+	bool bShiftPressed = false;
+
+	
+	
+
 	void Move(const FInputActionValue& InputActionValue);
 
 	void CursorTrace();  //光标的检测函数,在本地每帧调用

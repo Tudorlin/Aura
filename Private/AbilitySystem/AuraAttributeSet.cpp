@@ -93,6 +93,7 @@ void UAuraAttributeSet::PostGameplayEffectExecute(const FGameplayEffectModCallba
 		 ***/
 	{
 		SetHealth(FMath::Clamp(GetHealth(),0.f,GetMaxHealth()));
+		UE_LOG(LogTemp, Warning, TEXT("Changed Health on %s, Health: %f"), *Props.TargetAvatarActor->GetName(), GetHealth());
 	}
 	if(Data.EvaluatedData.Attribute==GetManaAttribute())
 	{
@@ -126,7 +127,7 @@ void UAuraAttributeSet::SetEffectProperties(const FGameplayEffectModCallbackData
 	{
 		Props.TargetAvatarActor = Data.Target.AbilityActorInfo->AvatarActor.Get();
 		Props.TargetController = Data.Target.AbilityActorInfo->PlayerController.Get();
-		Props.TargetCharacter = Cast<ACharacter>(Props.TargetController->GetPawn());
+		Props.TargetCharacter = Cast<ACharacter>(Props.TargetAvatarActor);  //这里一开始写的时候把参数写成了Props.TargetController->GetPawn(),导致初始化ai的时候目标实际上也是角色，一运行就会崩溃。
 		Props.TargetASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(Props.TargetAvatarActor);
 		//TargetASC赋值这里查了一下为什么不能用Data.Target.AbilityActorInfo->AbilitySystemComponent.Get(),得到的回答是能力组件不一定存在，这种获取方式不安全，不过是否正确不是很确定
 	}

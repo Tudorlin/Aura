@@ -56,7 +56,7 @@ protected:
 	//void InitializePrimaryAttributes() const;     由于两个初始化函数差不多，所以定义为传入一个GameplayEffect类作参数的函数
 	//void InitializeSecondaryAttributes() const;
 
-	void ApplyEffectSpec(TSubclassOf<UGameplayEffect> GameplayEffectClass,float level) const;
+	void ApplyEffectToSelf(TSubclassOf<UGameplayEffect> GameplayEffectClass,float level) const;
 	void InitializeDefaultAttributes();
 
 	void AddCharacterAbility();

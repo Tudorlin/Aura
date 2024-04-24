@@ -21,6 +21,6 @@ class AURA_API IEnemyInterface
 	GENERATED_BODY()
 
 public:
-	virtual void HighLightActor() = 0;    //鼠标点到时的高亮反馈
-	virtual void UnHighLightActor() = 0;
+	virtual void HighlightActor() = 0;    //鼠标点到时的高亮反馈
+	virtual void UnHighlightActor() = 0;
 };

@@ -4,7 +4,8 @@
 #include "AbilitySystem/AuraAbilitySystemComponent.h"
 
 #include "AuraGameplayTags.h"
-#include "..\..\Public\GameplayAbility"
+#include "GameplayAbility/AuraGameplayAbility.h"
+
 
 void UAuraAbilitySystemComponent::AbilityActorInfoSet()
 {
