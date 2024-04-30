@@ -7,6 +7,10 @@
 #include "Net/UnrealNetwork.h"
 #include"GameFramework/Character.h"
 #include "AuraGameplayTags.h"
+#include "GameplayAbilitySet.h"
+#include "Interfaction/CombatInterface.h"
+#include "Kismet/GameplayStatics.h"
+#include "Player/AuraPlayerController.h"
 
 
 UAuraAttributeSet::UAuraAttributeSet()
@@ -99,6 +103,35 @@ void UAuraAttributeSet::PostGameplayEffectExecute(const FGameplayEffectModCallba
 	{
 		SetMana(FMath::Clamp(GetMana(),0.f,GetMaxMana()));
 	}
+
+	if(Data.EvaluatedData.Attribute == GetIncomingDamageAttribute())		//元属性做占位数据用于伤害值
+	{
+		const float LocalIncomingDamage = GetIncomingDamage();
+		SetIncomingDamage(0.f);
+		if(LocalIncomingDamage>0.f)
+		{
+			const float NewHealth = GetHealth()-LocalIncomingDamage;
+			SetHealth(FMath::Clamp(NewHealth,0.f,GetMaxHealth()));
+
+			const bool bFatal = NewHealth<=0.f;
+
+			if(bFatal)
+			{
+				ICombatInterface* CombatInterface = Cast<ICombatInterface>(Props.TargetAvatarActor);
+				if(CombatInterface)
+				{
+					CombatInterface->Die();
+				}
+			}
+			else//没死的情况触发受击
+			{
+				FGameplayTagContainer TagContainer;
+				TagContainer.AddTag(FAuraGameplayTags::Get().Effect_HitReact);
+				Props.TargetASC->TryActivateAbilitiesByTag(TagContainer);
+			}
+			ShowFloatingText(Props,LocalIncomingDamage);		//伤害计算的同时将伤害值传入Aura控制器中的显示函数,再通过调用函数创建出Text组件
+		}
+	}
 }
 
 
@@ -130,6 +163,17 @@ void UAuraAttributeSet::SetEffectProperties(const FGameplayEffectModCallbackData
 		Props.TargetCharacter = Cast<ACharacter>(Props.TargetAvatarActor);  //这里一开始写的时候把参数写成了Props.TargetController->GetPawn(),导致初始化ai的时候目标实际上也是角色，一运行就会崩溃。
 		Props.TargetASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(Props.TargetAvatarActor);
 		//TargetASC赋值这里查了一下为什么不能用Data.Target.AbilityActorInfo->AbilitySystemComponent.Get(),得到的回答是能力组件不一定存在，这种获取方式不安全，不过是否正确不是很确定
+	}
+}
+
+void UAuraAttributeSet::ShowFloatingText(const FEffectProperties& Props, float Damage) const
+{
+	if(Props.SourceCharacter!=Props.TargetCharacter)
+	{
+		if(AAuraPlayerController* AuraPlayerController = Cast<AAuraPlayerController>(UGameplayStatics::GetPlayerController(Props.SourceCharacter,0)))//获取玩家的控制并转换
+		{
+			AuraPlayerController->ShowDamageText(Damage,Props.TargetCharacter);
+		}
 	}
 }
 

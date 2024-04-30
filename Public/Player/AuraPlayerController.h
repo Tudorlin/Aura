@@ -7,6 +7,7 @@
 #include "GameFramework/PlayerController.h"
 #include "Input/AuraInputConfig.h"
 #include "AuraPlayerController.generated.h"
+class UDamageTextComponent;
 class USplineComponent;
 class UAuraAbilitySystemComponent;
 class UInputMappingContext;
@@ -22,9 +23,13 @@ class AURA_API AAuraPlayerController : public APlayerController
 	GENERATED_BODY()
 public:
 	AAuraPlayerController();
+	virtual void PlayerTick(float DeltaTime) override;   //与tick的区别在于playertick只会被本地控制时调用，而tick可以用于服务端和非本地的Controller
+
+	UFUNCTION(Client,Reliable)		//函数在服务端调用，在客户端执行
+	void ShowDamageText(float Damage,ACharacter* TargetCharacter);
+	
 protected:
 	virtual void BeginPlay() override;
-	virtual void PlayerTick(float DeltaTime) override;   //与tick的区别在于playertick只会被本地控制时调用，而tick可以用于服务端和非本地的Controller
 	virtual  void SetupInputComponent() override;
 
 
@@ -40,13 +45,9 @@ private:
 
 	void ShiftButtonPressed() { bShiftPressed = true; }
 	void ShiftButtonReleased() { bShiftPressed = false; }
-
-
+	
 	bool bShiftPressed = false;
-
 	
-	
-
 	void Move(const FInputActionValue& InputActionValue);
 
 	void CursorTrace();  //光标的检测函数,在本地每帧调用
@@ -81,5 +82,7 @@ private:
 	TObjectPtr<USplineComponent> Spline;
 
 	void AutoRun();  //自动行走
-	
+
+	UPROPERTY(EditDefaultsOnly)
+	TSubclassOf<UDamageTextComponent> DamageTextComponentClass;
 };

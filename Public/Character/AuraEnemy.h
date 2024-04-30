@@ -3,11 +3,13 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "AbilitySystem/Data/CharacterClassInfo.h"
 #include "Character/AuraCharacterBase.h"
 #include "Interfaction/EnemyInterface.h"
 #include "UI/WidgetController/OverlayWidgetController.h"
 #include "AuraEnemy.generated.h"
 
+enum class ECharacterClass : uint8;
 class UWidgetComponent;
 /**
  * 
@@ -25,6 +27,7 @@ public:
 
 	/********* CombatInterface Start ****************/
 	virtual int32 GetPlayerLevel() override;
+	virtual void Die() override;
 	/********* CombatInterface End ****************/
 
 	UPROPERTY(BlueprintAssignable)
@@ -33,13 +36,28 @@ public:
 	UPROPERTY(BlueprintAssignable)
 	FOnAttributesChangedSignature OnMaxHealthChanged;
 
+	void HitReactTagChanged(const FGameplayTag CallbackTag,int32 NewCount);
+
+	UPROPERTY(BlueprintReadOnly,Category="Combat")
+	bool bHitReacting = false;
+
+	UPROPERTY(BlueprintReadOnly,Category="Combat")
+	float BaseWalkSpeed = 250.f;
+
+	UPROPERTY(EditAnywhere,BlueprintReadOnly,Category="Combat")
+	float LifeSpan = 5.f;				//死亡后尸体生命周期
+
 protected:
 	virtual void BeginPlay() override;
 	virtual void InitAbilityActorInfo() override;
+	virtual void InitializeDefaultAttributes() const override;		//重写敌人属性集初始化函数
 
 	UPROPERTY(EditAnywhere,BlueprintReadOnly,Category="Character Default Class")
 	int32 Level = 1;
 
 	UPROPERTY(VisibleAnywhere,BlueprintReadOnly)
 	TObjectPtr<UWidgetComponent> HealthBar;
+
+	UPROPERTY(EditAnywhere,BlueprintReadOnly,Category="Character Default Class")  //敌人类型
+	ECharacterClass CharacterClass = ECharacterClass::Warrior;
 };

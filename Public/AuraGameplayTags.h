@@ -42,8 +42,12 @@ public:
 	FGameplayTag Input_1;
 	FGameplayTag Input_2;
 	FGameplayTag Input_3;
-	FGameplayTag Input_4;	
+	FGameplayTag Input_4;
 
+
+	FGameplayTag Damage;
+
+	FGameplayTag Effect_HitReact;   //受击时的反应
 	
 protected:
 

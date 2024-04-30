@@ -12,7 +12,7 @@ class UCombatInterface : public UInterface
 {
 	GENERATED_BODY()
 };
-
+class UAnimMontage;
 /**
  * 
  */
@@ -27,4 +27,9 @@ public:
 
 	UFUNCTION(BlueprintImplementableEvent,BlueprintCallable)
 	void UpdateFacingTarget(const FVector Target);    //用于降低MotionWarping与角色之间的耦合性，转化为接口类而不是角色
+
+	UFUNCTION(BlueprintNativeEvent,BlueprintCallable)
+	UAnimMontage* GetHitMontage();
+
+	virtual void Die() = 0;
 };

@@ -10,8 +10,10 @@
 #include "NavigationSystem.h"
 #include "AbilitySystem/AuraAbilitySystemComponent.h"
 #include "Components/SplineComponent.h"
+#include "GameFramework/Character.h"
 #include "Input/AuraInputComponent.h"
 #include "Interfaction/EnemyInterface.h"
+#include "UI/Widget/DamageTextComponent.h"
 
 AAuraPlayerController::AAuraPlayerController()
 {
@@ -41,6 +43,18 @@ void AAuraPlayerController::PlayerTick(float DeltaTime)
 	Super::PlayerTick(DeltaTime);
 	CursorTrace();
 	AutoRun();
+}
+
+void AAuraPlayerController::ShowDamageText_Implementation(float Damage, ACharacter* TargetCharacter)
+{
+	if (TargetCharacter!=nullptr && DamageTextComponentClass)
+	{
+		UDamageTextComponent* DamageTextComponent = NewObject<UDamageTextComponent>(TargetCharacter,DamageTextComponentClass);		//创建伤害控件
+		DamageTextComponent->RegisterComponent();				//附加到目标的根组件中
+		DamageTextComponent->AttachToComponent(TargetCharacter->GetRootComponent(),FAttachmentTransformRules::KeepRelativeTransform);	
+		DamageTextComponent->DetachFromComponent(FDetachmentTransformRules::KeepWorldTransform);			//脱离目标
+		DamageTextComponent->SetDamage(Damage);				//设置文本数字
+	}
 }
 
 void AAuraPlayerController::CursorTrace()

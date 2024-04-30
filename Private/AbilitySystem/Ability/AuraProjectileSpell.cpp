@@ -5,6 +5,7 @@
 
 #include "AbilitySystemBlueprintLibrary.h"
 #include "AbilitySystemComponent.h"
+#include "AuraGameplayTags.h"
 #include "Actor/AuraProjectile.h"
 #include "Interfaction/CombatInterface.h"
 #include "Kismet/KismetSystemLibrary.h"
@@ -44,7 +45,11 @@ void UAuraProjectileSpell::SpawnProjectile(const FVector& ProjectileSpawnLocatio
 
 		const UAbilitySystemComponent* SourceASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(GetAvatarActorFromActorInfo());  //获取能力拥有者的能力组件
 		const FGameplayEffectSpecHandle SpecHandle = SourceASC->MakeOutgoingSpec(DamageEffectClass,GetAbilityLevel(),SourceASC->MakeEffectContext());  //通过获取到的能力组件创建一个SpecHandle
-		Projectile->DamageEffectSpecHandle = SpecHandle;   //将创建的SpecHandle保存在能力中的变量中,将会在Projectile中用于计算伤害
+
+		const FAuraGameplayTags GameplayTags = FAuraGameplayTags::Get();
+		const float ScaledDamage = Damage.GetValueAtLevel(GetAbilityLevel());
+		UAbilitySystemBlueprintLibrary::AssignTagSetByCallerMagnitude(SpecHandle,GameplayTags.Damage,ScaledDamage);	//将值赋予Tag对应的SetByCaller用于计算
+		Projectile->DamageEffectSpecHandle = SpecHandle;   //将创建的SpecHandle保存在GA中的变量中,将会在Projectile中用于计算伤害
 
 		Projectile->FinishSpawning(SpawnTransform);
 	}

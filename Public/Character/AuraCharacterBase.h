@@ -24,6 +24,12 @@ public:
 
 	UAttributeSet* GetAttributeSet() const { return AttributeSet; }
 
+	virtual UAnimMontage* GetHitMontage_Implementation() override;
+
+	virtual void Die() override;
+
+	UFUNCTION(NetMulticast,Reliable)
+	virtual void MulticastHandleDeath();
 protected:
 	virtual void BeginPlay() override;
 	UPROPERTY(EditAnywhere,Category="Combat")
@@ -57,11 +63,29 @@ protected:
 	//void InitializeSecondaryAttributes() const;
 
 	void ApplyEffectToSelf(TSubclassOf<UGameplayEffect> GameplayEffectClass,float level) const;
-	void InitializeDefaultAttributes();
+	virtual void InitializeDefaultAttributes() const;
 
 	void AddCharacterAbility();
+
+	//死亡后的溶解效果
+	void Dissolve();
+	
+	UFUNCTION(BlueprintImplementableEvent)
+	void StartDissolveTimeline(UMaterialInstanceDynamic* DynamicMaterialInstance);
+
+	UFUNCTION(BlueprintImplementableEvent)
+	void StartWeaponDissolveTimeline(UMaterialInstanceDynamic* DynamicWeaponMaterialInstanceDynamic);
+
+	UPROPERTY(EditAnywhere,Category="Dissolve")
+	TObjectPtr<UMaterialInstance> DissolveMaterialInstance;
+
+	UPROPERTY(EditAnywhere,Category=Dissolve)
+	TObjectPtr<UMaterialInstance> WeaponDissolveMaterialInstance;
 
 private:
 	UPROPERTY(EditAnywhere,Category="Abilities")
 	TArray<TSubclassOf<UGameplayAbility>> StartupAbilities;
+
+	UPROPERTY(EditAnywhere,Category="Combact")
+	TObjectPtr<UAnimMontage> HitReactMontage;
 };

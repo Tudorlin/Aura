@@ -172,6 +172,14 @@ public:
 	void OnRep_Mana(const FGameplayAttributeData& OldMana) const;
 	/*******重要属性值********/
 
+
+	/**************元属性*************/
+	UPROPERTY(BlueprintReadOnly,Category="Meta Attributes")
+	FGameplayAttributeData IncomingDamage;
+	ATTRIBUTE_ACCESSORS(UAuraAttributeSet,IncomingDamage);
+
+    
 private:
 	void SetEffectProperties(const FGameplayEffectModCallbackData& Data,FEffectProperties& Props) const;
+	void ShowFloatingText(const FEffectProperties& Props,float Damage) const;
 };
