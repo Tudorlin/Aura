@@ -57,7 +57,10 @@ void AAuraEnemy::BeginPlay()
 	Super::BeginPlay();
 	InitAbilityActorInfo();
 	GetCharacterMovement()->MaxWalkSpeed = BaseWalkSpeed;
-	UAuraAbilitySystemLibrary::GiveStartupAbilities(this,AbilitySystemComponent);	//初始化敌人技能
+	if(HasAuthority())	//由于游戏模式只存于服务器中，所以客户端无法通过Gamemode获得CharacterInfo,在这里做检查
+	{
+		UAuraAbilitySystemLibrary::GiveStartupAbilities(this,AbilitySystemComponent);	//初始化敌人技能
+	}
 	if(UAuraUserWidget* AuraWidget = Cast<UAuraUserWidget>(HealthBar->GetUserWidgetObject()))  //注意是Component,需要GetWidget才能转
 	{
 		AuraWidget->SetWidgetController(this);  //记住这个函数中包含了	WidgetControllerSet()函数，需要在蓝图中实现。
@@ -85,7 +88,10 @@ void AAuraEnemy::InitAbilityActorInfo()
 	AbilitySystemComponent->InitAbilityActorInfo(this, this);
 	Cast<UAuraAbilitySystemComponent>(AbilitySystemComponent)->AbilityActorInfoSet();
 
-	InitializeDefaultAttributes();
+	if(HasAuthority())
+	{
+		InitializeDefaultAttributes();
+	}
 }
 
 void AAuraEnemy::InitializeDefaultAttributes() const

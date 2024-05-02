@@ -45,15 +45,15 @@ void AAuraPlayerController::PlayerTick(float DeltaTime)
 	AutoRun();
 }
 
-void AAuraPlayerController::ShowDamageText_Implementation(float Damage, ACharacter* TargetCharacter)
+void AAuraPlayerController::ShowDamageText_Implementation(float Damage, ACharacter* TargetCharacter,bool bBlocked,bool bCriticalHit)
 {
-	if (TargetCharacter!=nullptr && DamageTextComponentClass)
+	if (TargetCharacter!=nullptr && DamageTextComponentClass&&IsLocalController())
 	{
 		UDamageTextComponent* DamageTextComponent = NewObject<UDamageTextComponent>(TargetCharacter,DamageTextComponentClass);		//创建伤害控件
 		DamageTextComponent->RegisterComponent();				//附加到目标的根组件中
 		DamageTextComponent->AttachToComponent(TargetCharacter->GetRootComponent(),FAttachmentTransformRules::KeepRelativeTransform);	
 		DamageTextComponent->DetachFromComponent(FDetachmentTransformRules::KeepWorldTransform);			//脱离目标
-		DamageTextComponent->SetDamage(Damage);				//设置文本数字
+		DamageTextComponent->SetDamage(Damage,bBlocked,bCriticalHit);				//设置文本数字
 	}
 }
 

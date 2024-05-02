@@ -8,6 +8,7 @@
 #include"GameFramework/Character.h"
 #include "AuraGameplayTags.h"
 #include "GameplayAbilitySet.h"
+#include "AbilitySystem/AuraAbilitySystemLibrary.h"
 #include "Interfaction/CombatInterface.h"
 #include "Kismet/GameplayStatics.h"
 #include "Player/AuraPlayerController.h"
@@ -39,6 +40,12 @@ UAuraAttributeSet::UAuraAttributeSet()
 	TagToAttributes.Add(AuraGameplayTags.Attributes_Secondary_ManaRegeneration,GetManaRegenerationAttribute);
 	TagToAttributes.Add(AuraGameplayTags.Attributes_Secondary_MaxHealth,GetMaxHealthAttribute);
 	TagToAttributes.Add(AuraGameplayTags.Attributes_Secondary_MaxMana,GetMaxManaAttribute);
+
+	//抗性
+	TagToAttributes.Add(AuraGameplayTags.Attributes_Resistance_Arcane,GetArcaneResistanceAttribute);
+	TagToAttributes.Add(AuraGameplayTags.Attributes_Resistance_Physical,GetPhysicalResistanceAttribute);
+	TagToAttributes.Add(AuraGameplayTags.Attributes_Resistance_Fire,GetFireResistanceAttribute);
+	TagToAttributes.Add(AuraGameplayTags.Attributes_Resistance_Lightning,GetLightningResistanceAttribute);
 }
 
 void UAuraAttributeSet::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
@@ -63,6 +70,11 @@ void UAuraAttributeSet::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Ou
 	//重要属性
 	DOREPLIFETIME_CONDITION_NOTIFY(UAuraAttributeSet,Health,COND_None,REPNOTIFY_Always);//Health在服务器上更改成功并同步到客户端上时触发的回调函数，参数意外无条件，始终进行复制
 	DOREPLIFETIME_CONDITION_NOTIFY(UAuraAttributeSet,Mana,COND_None,REPNOTIFY_Always);
+	//抗性
+	DOREPLIFETIME_CONDITION_NOTIFY(UAuraAttributeSet,FireResistance,COND_None,REPNOTIFY_Always);
+	DOREPLIFETIME_CONDITION_NOTIFY(UAuraAttributeSet,LightningResistance,COND_None,REPNOTIFY_Always);
+	DOREPLIFETIME_CONDITION_NOTIFY(UAuraAttributeSet,PhysicalResistance,COND_None,REPNOTIFY_Always);
+	DOREPLIFETIME_CONDITION_NOTIFY(UAuraAttributeSet,ArcaneResistance,COND_None,REPNOTIFY_Always);
 	
 }
 
@@ -129,7 +141,10 @@ void UAuraAttributeSet::PostGameplayEffectExecute(const FGameplayEffectModCallba
 				TagContainer.AddTag(FAuraGameplayTags::Get().Effect_HitReact);
 				Props.TargetASC->TryActivateAbilitiesByTag(TagContainer);
 			}
-			ShowFloatingText(Props,LocalIncomingDamage);		//伤害计算的同时将伤害值传入Aura控制器中的显示函数,再通过调用函数创建出Text组件
+			const bool bBlock = UAuraAbilitySystemLibrary::IsBlocked(Props.EffectContextHandle);
+			const bool bCriticalHit = UAuraAbilitySystemLibrary::IsCriticalHit(Props.EffectContextHandle);
+			
+			ShowFloatingText(Props,LocalIncomingDamage,bBlock,bCriticalHit);		//伤害计算的同时将伤害值传入Aura控制器中的显示函数,再通过调用函数创建出Text组件
 		}
 	}
 }
@@ -166,13 +181,13 @@ void UAuraAttributeSet::SetEffectProperties(const FGameplayEffectModCallbackData
 	}
 }
 
-void UAuraAttributeSet::ShowFloatingText(const FEffectProperties& Props, float Damage) const
+void UAuraAttributeSet::ShowFloatingText(const FEffectProperties& Props, float Damage,bool bBlocked,bool bCriticalHit) const
 {
 	if(Props.SourceCharacter!=Props.TargetCharacter)
 	{
-		if(AAuraPlayerController* AuraPlayerController = Cast<AAuraPlayerController>(UGameplayStatics::GetPlayerController(Props.SourceCharacter,0)))//获取玩家的控制并转换
+		if(AAuraPlayerController* AuraPlayerController = Cast<AAuraPlayerController>(Props.SourceCharacter->Controller))//获取玩家的控制并转换
 		{
-			AuraPlayerController->ShowDamageText(Damage,Props.TargetCharacter);
+			AuraPlayerController->ShowDamageText(Damage,Props.TargetCharacter,bBlocked,bCriticalHit);
 		}
 	}
 }
@@ -262,5 +277,27 @@ void UAuraAttributeSet::OnRep_Health(const FGameplayAttributeData& OldHealth) co
 void UAuraAttributeSet::OnRep_Mana(const FGameplayAttributeData& OldMana) const
 {
 	GAMEPLAYATTRIBUTE_REPNOTIFY(UAuraAttributeSet,Mana,OldMana);
+}
+
+
+//抗性*************************************************************
+void UAuraAttributeSet::OnRep_FireResistance(const FGameplayAttributeData& OldFireResistance) const
+{
+	GAMEPLAYATTRIBUTE_REPNOTIFY(UAuraAttributeSet,FireResistance,OldFireResistance);
+}
+
+void UAuraAttributeSet::OnRep_LightningResistance(const FGameplayAttributeData& OldLightningResistance) const
+{
+	GAMEPLAYATTRIBUTE_REPNOTIFY(UAuraAttributeSet,LightningResistance,OldLightningResistance);
+}
+
+void UAuraAttributeSet::OnRep_PhysicsResistance(const FGameplayAttributeData& OldPhysicsResistance) const
+{
+	GAMEPLAYATTRIBUTE_REPNOTIFY(UAuraAttributeSet,PhysicalResistance,OldPhysicsResistance);
+}
+
+void UAuraAttributeSet::OnRep_ArcaneResistance(const FGameplayAttributeData& OldArcaneResistance) const
+{
+	GAMEPLAYATTRIBUTE_REPNOTIFY(UAuraAttributeSet,ArcaneResistance,OldArcaneResistance);
 }
 

@@ -46,6 +46,17 @@ public:
 
 
 	FGameplayTag Damage;
+	FGameplayTag Damage_Fire;	//火焰伤害
+	FGameplayTag Damage_Lightning;		//雷电伤害
+	FGameplayTag Damage_Arcane; //魔法伤害
+	FGameplayTag Damage_Physics;	//物理伤害
+	
+	FGameplayTag Attributes_Resistance_Fire;	//抗性
+	FGameplayTag Attributes_Resistance_Lightning;
+	FGameplayTag Attributes_Resistance_Arcane;
+	FGameplayTag Attributes_Resistance_Physical;
+
+	TMap<FGameplayTag,FGameplayTag> DamageTypesToResistances;
 
 	FGameplayTag Effect_HitReact;   //受击时的反应
 	

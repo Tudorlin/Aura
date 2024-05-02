@@ -3,6 +3,7 @@
 
 #include "AbilitySystem/AuraAbilitySystemLibrary.h"
 
+#include "AuraAbilityType.h"
 #include "AbilitySystem/Data/CharacterClassInfo.h"
 #include "Kismet/GameplayStatics.h"
 #include "UI/WidgetController/AuraWidgetController.h"
@@ -88,4 +89,39 @@ UCharacterClassInfo* UAuraAbilitySystemLibrary::GetCharacterInfo(const UObject* 
 	AAuraGamemodeBase* AuraGamemodeBase = Cast<AAuraGamemodeBase>(UGameplayStatics::GetGameMode(WorldContextObject));
 	if(AuraGamemodeBase==nullptr) return nullptr;
 	return AuraGamemodeBase->CharacterClassInfo;
+}
+
+bool UAuraAbilitySystemLibrary::IsBlocked(const FGameplayEffectContextHandle& ContextHandle)
+{
+	if(const FAuraGameplayEffectContext* AuraEffectContext = static_cast<const FAuraGameplayEffectContext*>(ContextHandle.Get()))		//注意参数声明为const,调用的Get返回的是const版本
+	{
+		return AuraEffectContext->IsBlocked();
+	}
+	return false;
+}
+
+bool UAuraAbilitySystemLibrary::IsCriticalHit(const FGameplayEffectContextHandle& ContextHandle)
+{
+	if(const FAuraGameplayEffectContext* AuraEffectContext = static_cast<const FAuraGameplayEffectContext*>(ContextHandle.Get()))
+	{
+		return AuraEffectContext->IsCriticalHit();
+	}
+	return false;
+}
+
+void UAuraAbilitySystemLibrary::SetIsBlocked(FGameplayEffectContextHandle& ContextHandle, bool bInIsBlocked)
+{
+	if(FAuraGameplayEffectContext* AuraEffectContext = static_cast<FAuraGameplayEffectContext*>(ContextHandle.Get()))	//参数没有声明const,可以直接转换
+	{
+		AuraEffectContext->SetIsBlocked(bInIsBlocked);
+	}
+}
+
+void UAuraAbilitySystemLibrary::SetIsCriticalHit(FGameplayEffectContextHandle& ContextHandle,
+	bool bInIsCriticalHit)
+{
+	if (FAuraGameplayEffectContext* AuraEffectContext = static_cast<FAuraGameplayEffectContext*>(ContextHandle.Get()))
+	{
+		AuraEffectContext->SetIsCriticalHit(bInIsCriticalHit);
+	}
 }

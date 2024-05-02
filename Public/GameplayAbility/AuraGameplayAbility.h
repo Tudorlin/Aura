@@ -19,6 +19,6 @@ public:
 	UPROPERTY(EditDefaultsOnly,Category="Input")
 	FGameplayTag StartupTag;     //每个技能自带Tag，用于传入能力组件中的函数激活能力用
 
-	UPROPERTY(EditDefaultsOnly,BlueprintReadOnly,Category="Damage")
-	FScalableFloat Damage;
+	// UPROPERTY(EditDefaultsOnly,BlueprintReadOnly,Category="Damage")
+	// FScalableFloat Damage;		将在DamageGameplayAbility中处理伤害
 };

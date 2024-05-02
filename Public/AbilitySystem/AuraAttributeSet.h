@@ -153,11 +153,7 @@ public:
 	void OnRep_MaxMana(const FGameplayAttributeData& OldMaxMana) const;
 	
 	/************次要属性***********************/
-
 	
-	
-
-
 	/********重要属性值*********/
 	UPROPERTY(BlueprintReadOnly,ReplicatedUsing=OnRep_Health,Category="Vital Attributes")
 	FGameplayAttributeData Health;   //FGameplayAttributeData包括两个浮点值BaseValue和CurrentValue,前者为基础属性，通常包括永久性的变化；后者表示临时性的增益或者减益
@@ -172,7 +168,31 @@ public:
 	void OnRep_Mana(const FGameplayAttributeData& OldMana) const;
 	/*******重要属性值********/
 
+	/**********抗性*************/
+	UPROPERTY(BlueprintReadOnly,ReplicatedUsing=OnRep_FireResistance,Category="Resistance")
+	FGameplayAttributeData FireResistance;
+	ATTRIBUTE_ACCESSORS(UAuraAttributeSet,FireResistance);
+	UFUNCTION()
+	void OnRep_FireResistance(const FGameplayAttributeData& OldFireResistance) const;
 
+	UPROPERTY(BlueprintReadOnly,ReplicatedUsing=OnRep_LightningResistance,Category="Resistance")
+	FGameplayAttributeData LightningResistance;
+	ATTRIBUTE_ACCESSORS(UAuraAttributeSet,LightningResistance);
+	UFUNCTION()
+	void OnRep_LightningResistance(const FGameplayAttributeData& OldLightningResistance) const;
+
+	UPROPERTY(BlueprintReadOnly,ReplicatedUsing=OnRep_PhysicsResistance,Category="Resistance")
+	FGameplayAttributeData PhysicalResistance;
+	ATTRIBUTE_ACCESSORS(UAuraAttributeSet,PhysicalResistance);
+	UFUNCTION()
+	void OnRep_PhysicsResistance(const FGameplayAttributeData& OldPhysicsResistance) const;
+
+	UPROPERTY(BlueprintReadOnly,ReplicatedUsing=OnRep_ArcaneResistance,Category="Resistance")
+	FGameplayAttributeData ArcaneResistance;
+	ATTRIBUTE_ACCESSORS(UAuraAttributeSet,ArcaneResistance);
+	UFUNCTION()
+	void OnRep_ArcaneResistance(const FGameplayAttributeData& OldArcaneResistance) const;
+	
 	/**************元属性*************/
 	UPROPERTY(BlueprintReadOnly,Category="Meta Attributes")
 	FGameplayAttributeData IncomingDamage;
@@ -181,5 +201,5 @@ public:
     
 private:
 	void SetEffectProperties(const FGameplayEffectModCallbackData& Data,FEffectProperties& Props) const;
-	void ShowFloatingText(const FEffectProperties& Props,float Damage) const;
+	void ShowFloatingText(const FEffectProperties& Props,float Damage,bool bBlocked,bool bCriticalHit) const;
 };

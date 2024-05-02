@@ -30,7 +30,6 @@ void UAuraProjectileSpell::SpawnProjectile(const FVector& ProjectileSpawnLocatio
 	{
 		const FVector SocketLocation = CombatInterface->GetCombatSocketLocation();
 		FRotator Rotation = (ProjectileSpawnLocation-SocketLocation).Rotation();
-		Rotation.Pitch = 0.f;
 
 		FTransform SpawnTransform;
 		SpawnTransform.SetLocation(SocketLocation);
@@ -44,11 +43,28 @@ void UAuraProjectileSpell::SpawnProjectile(const FVector& ProjectileSpawnLocatio
 			ESpawnActorCollisionHandlingMethod::AlwaysSpawn);
 
 		const UAbilitySystemComponent* SourceASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(GetAvatarActorFromActorInfo());  //获取能力拥有者的能力组件
-		const FGameplayEffectSpecHandle SpecHandle = SourceASC->MakeOutgoingSpec(DamageEffectClass,GetAbilityLevel(),SourceASC->MakeEffectContext());  //通过获取到的能力组件创建一个SpecHandle
+		FGameplayEffectContextHandle ContextHandle = SourceASC->MakeEffectContext();		//创建并设置上下文句柄
+		ContextHandle.SetAbility(this);
+		ContextHandle.AddSourceObject(Projectile);
+		TArray<TWeakObjectPtr<AActor>>Actors;
+		Actors.Add(Projectile);
+		ContextHandle.AddActors(Actors);
+		FHitResult HitResult;
+		HitResult.Location = ProjectileSpawnLocation;
+		ContextHandle.AddHitResult(HitResult);
+		const FGameplayEffectSpecHandle SpecHandle = SourceASC->MakeOutgoingSpec(DamageEffectsClass,GetAbilityLevel(),ContextHandle);  //通过获取到的能力组件创建一个SpecHandle
+		
+		
 
 		const FAuraGameplayTags GameplayTags = FAuraGameplayTags::Get();
-		const float ScaledDamage = Damage.GetValueAtLevel(GetAbilityLevel());
-		UAbilitySystemBlueprintLibrary::AssignTagSetByCallerMagnitude(SpecHandle,GameplayTags.Damage,ScaledDamage);	//将值赋予Tag对应的SetByCaller用于计算
+
+		for(auto Pair : DamageType)
+		{
+			const float ScaleDamage = Pair.Value.GetValueAtLevel(GetAbilityLevel());
+			UAbilitySystemBlueprintLibrary::AssignTagSetByCallerMagnitude(SpecHandle,Pair.Key,ScaleDamage);
+		}
+		//const float ScaledDamage = Damage.GetValueAtLevel(GetAbilityLevel());
+		//UAbilitySystemBlueprintLibrary::AssignTagSetByCallerMagnitude(SpecHandle,GameplayTags.Damage,ScaledDamage);	//将值赋予Tag对应的SetByCaller用于计算
 		Projectile->DamageEffectSpecHandle = SpecHandle;   //将创建的SpecHandle保存在GA中的变量中,将会在Projectile中用于计算伤害
 
 		Projectile->FinishSpawning(SpawnTransform);

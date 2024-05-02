@@ -26,7 +26,7 @@ public:
 	virtual void PlayerTick(float DeltaTime) override;   //与tick的区别在于playertick只会被本地控制时调用，而tick可以用于服务端和非本地的Controller
 
 	UFUNCTION(Client,Reliable)		//函数在服务端调用，在客户端执行
-	void ShowDamageText(float Damage,ACharacter* TargetCharacter);
+	void ShowDamageText(float Damage,ACharacter* TargetCharacter,bool Blocked,bool bCriticalHit);
 	
 protected:
 	virtual void BeginPlay() override;
