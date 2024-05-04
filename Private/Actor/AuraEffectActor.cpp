@@ -50,6 +50,7 @@ void AAuraEffectActor::BeginPlay()
 
 void AAuraEffectActor::ApplyEffectToTarget(AActor* TargetActor, TSubclassOf<UGameplayEffect> GameplayEffectClass)
 {
+	if(TargetActor->ActorHasTag("Enemy")&&!bApplyEffectToEnemies) return;
 	//获取target的能力组件
 	UAbilitySystemComponent* TargetASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(TargetActor);
 	if(TargetASC==nullptr) return; 
@@ -75,10 +76,16 @@ void AAuraEffectActor::ApplyEffectToTarget(AActor* TargetActor, TSubclassOf<UGam
 	const bool bInInfinite = EffectSpecHandle.Data.Get()->Def.Get()->DurationPolicy == EGameplayEffectDurationType::Infinite;//此Def为一个TObject<const UGameplayEffect>类型模板实例，里面储存了效果的配置信息，大概是蓝图中打开之后细节面板中的属性
 	if(bInInfinite&&InfinityEffectRemovalPolicy==EEffectRemovalPolicy::RemoveOnEndOverlap)
 		ActiveEffectHandles.Add(ActiveEffectHandle,TargetASC);  //通过获取应用效果时的ActiveEffectHandle为Key,此时的ASC为Value储存在map中,便于后续进行跟踪，注意目前只适用永久持续的效果
+
+	if(!bInInfinite)
+	{
+		Destroy();
+	}
 }
 
 void AAuraEffectActor::OnOverlap(AActor* TargetActor)
 {
+	if(TargetActor->ActorHasTag("Enemy")&&!bApplyEffectToEnemies) return;
 	if(InstantEffectApplicationPolicy==EEffectApplicationPolicy::ApplyOnOverlap)
 		ApplyEffectToTarget(TargetActor,InstantGameplayEffectClass);
 	if(DurationEffectApplicationPolicy==EEffectApplicationPolicy::ApplyOnOverlap)
@@ -89,6 +96,7 @@ void AAuraEffectActor::OnOverlap(AActor* TargetActor)
 
 void AAuraEffectActor::OnEndOverlay(AActor* TargetActor)
 {
+	if(TargetActor->ActorHasTag("Enemy")&&!bApplyEffectToEnemies) return;
 	if(InstantEffectApplicationPolicy==EEffectApplicationPolicy::ApplyOnEndOverlap)
 		ApplyEffectToTarget(TargetActor,InstantGameplayEffectClass);
 	if(DurationEffectApplicationPolicy==EEffectApplicationPolicy::ApplyOnEndOverlap)

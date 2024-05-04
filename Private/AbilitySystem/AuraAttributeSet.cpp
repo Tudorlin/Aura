@@ -188,6 +188,11 @@ void UAuraAttributeSet::ShowFloatingText(const FEffectProperties& Props, float D
 		if(AAuraPlayerController* AuraPlayerController = Cast<AAuraPlayerController>(Props.SourceCharacter->Controller))//获取玩家的控制并转换
 		{
 			AuraPlayerController->ShowDamageText(Damage,Props.TargetCharacter,bBlocked,bCriticalHit);
+			return;
+		}
+		if(AAuraPlayerController* AuraPlayerController = Cast<AAuraPlayerController>(Props.TargetCharacter->Controller))//通过AI控制器触发
+		{
+			AuraPlayerController->ShowDamageText(Damage,Props.TargetCharacter,bBlocked,bCriticalHit);
 		}
 	}
 }

@@ -25,6 +25,9 @@ struct FCharacterClassDefaultInfo
 
 	UPROPERTY(EditDefaultsOnly,Category="Class Default")
 	TSubclassOf<UGameplayEffect> PrimaryAttributes;
+
+	UPROPERTY(EditDefaultsOnly,Category="Class Default")
+	TArray<TSubclassOf<UGameplayAbility>> StartupAbilities;
 };
 
 
@@ -34,7 +37,7 @@ class AURA_API UCharacterClassInfo : public UDataAsset
 	GENERATED_BODY()
 public:
 	UPROPERTY(EditDefaultsOnly,Category="Class Default")
-	TMap<ECharacterClass,FCharacterClassDefaultInfo>CharacterClassInformation;  //不同的角色类型对应不同的初始主属性
+	TMap<ECharacterClass,FCharacterClassDefaultInfo>CharacterClassInformation;  //不同的角色类型对应不同的主属性、能力等
 
 	UPROPERTY(EditDefaultsOnly,Category="Class Default")
 	TSubclassOf<UGameplayEffect> SecondaryAttributes;

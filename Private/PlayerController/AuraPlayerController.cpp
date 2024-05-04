@@ -131,8 +131,11 @@ void AAuraPlayerController::AbilityInputTagReleased(FGameplayTag InputTag)
 					Spline->AddSplinePoint(Point,ESplineCoordinateSpace::World);
 					//DrawDebugSphere(GetWorld(),Point,8.f,8,FColor::Red,false,5.f);
 				}
-				CachedDestination = NavPath->PathPoints[NavPath->PathPoints.Num()-1];   //选择最后一个点作为最终目标，防止角色乱跑的情况出现
-				bAutoRunning = true;
+				if(NavPath->PathPoints.Num()>0)
+				{
+					CachedDestination = NavPath->PathPoints[NavPath->PathPoints.Num()-1];   //选择最后一个点作为最终目标，防止角色乱跑的情况出现
+					bAutoRunning = true;
+				}
 			}
 		}
 		FollowTime = 0.f;

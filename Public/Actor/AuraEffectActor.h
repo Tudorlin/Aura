@@ -52,6 +52,11 @@ protected:
 	UFUNCTION(BlueprintCallable)
 	void OnEndOverlay(AActor*TargetActor);
 
+	bool bDestroyOnEffectApplied = false;	//判断GE被应用后是否销毁
+
+	UPROPERTY(EditAnywhere,BlueprintReadOnly,Category="Effects")
+	bool bApplyEffectToEnemies = false;		//判定是否对敌人有效	
+
 	UPROPERTY(EditAnywhere,BlueprintReadOnly,Category="Effects")
 	bool bDestroyOnEffectRemoval = false;
 	

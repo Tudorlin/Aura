@@ -24,26 +24,40 @@ public:
 
 	UAttributeSet* GetAttributeSet() const { return AttributeSet; }
 
-	virtual UAnimMontage* GetHitMontage_Implementation() override;
-
+	//CombatInterface
 	virtual void Die() override;
+	virtual FVector GetCombatSocketLocation_Implementation(const FGameplayTag& MontageTag) override;
+	virtual UAnimMontage* GetHitMontage_Implementation() override;
+	virtual bool IsDead_Implementation() const override;
+	virtual AActor* GetAvatar_Implementation() override;
+	virtual TArray<FTaggedMontage> GetAttackMontages_Implementation() override;
+	//CombatInterface
+	
 
 	UFUNCTION(NetMulticast,Reliable)
 	virtual void MulticastHandleDeath();
+
+	UPROPERTY(EditAnywhere,Category="Combat")		//角色蓝图类中添加Tag和蒙太奇,通过CombatInterface中的Get函数获取并使用
+	TArray<FTaggedMontage> AttackMontage;
 protected:
 	virtual void BeginPlay() override;
-	UPROPERTY(EditAnywhere,Category="Combat")
+	UPROPERTY(EditAnywhere,BlueprintReadOnly,Category="Combat")
 	TObjectPtr<USkeletalMeshComponent>Weapon;   //武器，不知从哪个版本开始ue用TObject和FObject代替了某些裸指针，作用好像是方便追踪，后面再细看
 	//基类用作玩家角色和AI敌人的父类，所以在基类中不需要tick和SetupPlayerInputComponent函数,输入处理将在控制器中实现
 
 	UPROPERTY(EditAnywhere,Category="Combat")
-	FName WeaponTipSocketName;   //法杖发射物插槽的名字
+	FName WeaponTipSocketName;   //武器插槽名字
 
-	virtual FVector GetCombatSocketLocation() override;
+	UPROPERTY(EditAnywhere,Category="Combat")
+	FName LeftHandSocketName;		//某个怪物使用爪子进行攻击，两只手上对应的插槽名字
+
+	UPROPERTY(EditAnywhere,Category="Combat")
+	FName RightHandSocketName;
 	
-
 	UPROPERTY()
 	TObjectPtr<UAbilitySystemComponent> AbilitySystemComponent;
+
+	bool bDead = false;
 
 	UPROPERTY()
 	TObjectPtr<UAttributeSet> AttributeSet;
@@ -81,6 +95,8 @@ protected:
 
 	UPROPERTY(EditAnywhere,Category=Dissolve)
 	TObjectPtr<UMaterialInstance> WeaponDissolveMaterialInstance;
+
+	
 
 private:
 	UPROPERTY(EditAnywhere,Category="Abilities")

@@ -9,6 +9,8 @@
 #include "UI/WidgetController/OverlayWidgetController.h"
 #include "AuraEnemy.generated.h"
 
+class AAuraAIController;
+class UBehaviorTree;
 enum class ECharacterClass : uint8;
 class UWidgetComponent;
 /**
@@ -20,9 +22,14 @@ class AURA_API AAuraEnemy : public AAuraCharacterBase,public IEnemyInterface
 	GENERATED_BODY()
 public:
 	AAuraEnemy();
+	virtual void PossessedBy(AController* NewController) override;
+	
 	// IEnemyInterface Start
 	virtual void HighlightActor() override;
 	virtual void UnHighlightActor() override;
+
+	virtual void SetCombatTarget_Implementation(AActor* ICombatTarget) override;		//设置战斗目标，具体实现在蓝图中
+	virtual  AActor* GetCombatTarget_Implementation() const override;
 	//End IEnemyInterface End
 
 	/********* CombatInterface Start ****************/
@@ -41,7 +48,7 @@ public:
 	UPROPERTY(BlueprintReadOnly,Category="Combat")
 	bool bHitReacting = false;
 
-	UPROPERTY(BlueprintReadOnly,Category="Combat")
+	UPROPERTY(EditAnywhere,Category="Combat")
 	float BaseWalkSpeed = 250.f;
 
 	UPROPERTY(EditAnywhere,BlueprintReadOnly,Category="Combat")
@@ -60,4 +67,13 @@ protected:
 
 	UPROPERTY(EditAnywhere,BlueprintReadOnly,Category="Character Default Class")  //敌人类型
 	ECharacterClass CharacterClass = ECharacterClass::Warrior;
+
+	UPROPERTY(EditAnywhere,Category="AI")
+	TObjectPtr<UBehaviorTree>BehaviorTree;
+
+	UPROPERTY()
+	TObjectPtr<AAuraAIController>	AuraAIController;
+
+	UPROPERTY(BlueprintReadWrite,Category="Combat")
+	TObjectPtr<AActor>CombatTarget;
 };

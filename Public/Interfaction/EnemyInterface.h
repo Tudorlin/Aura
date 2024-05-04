@@ -23,4 +23,10 @@ class AURA_API IEnemyInterface
 public:
 	virtual void HighlightActor() = 0;    //鼠标点到时的高亮反馈
 	virtual void UnHighlightActor() = 0;
+
+	UFUNCTION(BlueprintCallable,BlueprintNativeEvent)
+	void SetCombatTarget(AActor* ICombatTarget);
+
+	UFUNCTION(BlueprintCallable,BlueprintNativeEvent)
+	AActor* GetCombatTarget() const;
 };

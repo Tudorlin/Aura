@@ -22,7 +22,7 @@ protected:
 		const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData) override;
 
 	UFUNCTION(BlueprintCallable,Category="Projectile")    //可在蓝图中调用,用于在GE中接受到通知时触发，便于在蒙太奇播放到指定位置时生成火球
-	void SpawnProjectile(const FVector& ProjectileSpawnLocation);
+	void SpawnProjectile(const FVector& ProjectileTargetLocation);
 
 	UPROPERTY(EditDefaultsOnly,BlueprintReadOnly)   
 	TSubclassOf<AAuraProjectile> ProjectileClass;

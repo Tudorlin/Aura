@@ -1,6 +1,7 @@
 
 #include "Character/AuraCharacterBase.h"
 #include "AbilitySystemComponent.h"
+#include "AuraGameplayTags.h"
 #include "AbilitySystem/AuraAbilitySystemComponent.h"
 #include "Aura/Aura.h"
 #include "Components/CapsuleComponent.h"
@@ -32,11 +33,27 @@ UAnimMontage* AAuraCharacterBase::GetHitMontage_Implementation()
 	return HitReactMontage;
 }
 
+bool AAuraCharacterBase::IsDead_Implementation() const
+{
+	return bDead;
+}
+
+AActor* AAuraCharacterBase::GetAvatar_Implementation()
+{
+	return this;
+}
+
+TArray<FTaggedMontage> AAuraCharacterBase::GetAttackMontages_Implementation()
+{
+	return AttackMontage;
+}
+
 void AAuraCharacterBase::Die()
 {
 	Weapon->DetachFromComponent(FDetachmentTransformRules(EDetachmentRule::KeepWorld,true));
 	Dissolve();
 	MulticastHandleDeath();
+	bDead = true;
 }
 
 void AAuraCharacterBase::Dissolve()
@@ -76,10 +93,16 @@ void AAuraCharacterBase::BeginPlay()
 	
 }
 
-FVector AAuraCharacterBase::GetCombatSocketLocation()
+FVector AAuraCharacterBase::GetCombatSocketLocation_Implementation(const FGameplayTag& MontageTag)	//根据Tag返回插槽位置
 {
-	check(Weapon);
-	return Weapon->GetSocketLocation(WeaponTipSocketName);
+	const FAuraGameplayTags GameplayTag = FAuraGameplayTags::Get();
+	if(MontageTag.MatchesTag(GameplayTag.Montage_Attack_Weapon)&&IsValid(Weapon))
+		return Weapon->GetSocketLocation(WeaponTipSocketName);
+	if(MontageTag.MatchesTag(GameplayTag.Montage_Attack_LeftHand))
+		return GetMesh()->GetSocketLocation(LeftHandSocketName);		//注意没有武器
+	if(MontageTag.MatchesTag(GameplayTag.Montage_Attack_RightHand))
+		return GetMesh()->GetSocketLocation(RightHandSocketName);
+	return FVector();
 }
 
 void AAuraCharacterBase::InitAbilityActorInfo()

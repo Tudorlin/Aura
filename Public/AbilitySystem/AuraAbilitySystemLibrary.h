@@ -31,7 +31,7 @@ public:
 	static void InitializeDefaultAttributes(const UObject* WorldContextObject,ECharacterClass CharacterClass,float Level,UAbilitySystemComponent* ASC);
 
 	UFUNCTION(BlueprintCallable,Category="AuraAbilitySystemLibrary | CharacterClassDefault")
-	static void GiveStartupAbilities(const UObject* WorldContextObject,UAbilitySystemComponent* ASC);	//为敌人添加技能
+	static void GiveStartupAbilities(const UObject* WorldContextObject,UAbilitySystemComponent* ASC,ECharacterClass CharacterClass);	//为敌人添加技能
 
 	UFUNCTION(BlueprintCallable,Category="AuraAbilitySystemLibrary | CharacterClassDefault")		//获取游戏模式中的CharacterClassInfo
 	static UCharacterClassInfo* GetCharacterInfo(const UObject* WorldContextObject);
@@ -48,5 +48,11 @@ public:
 
 	UFUNCTION(BlueprintCallable,Category="AuraAbilitySystemLibrary | GameplayEffefts")
 	static void SetIsCriticalHit(UPARAM(ref) FGameplayEffectContextHandle& ContextHandle, bool bInIsCriticalHit);
-	
+
+	UFUNCTION(BlueprintCallable,Category="AuraAbilitySystemLibrary | GameplayMechanics")
+	static void GetLivePlayersInRadius(const UObject* WorldContext,TArray<AActor*>&OutOverlappingActors,
+		const TArray<AActor*>ActorsToIgnore,float Radius,const FVector& SphereOrigin);	//获取以SphereOrigin为圆心，Radius为半径的球内存活的玩家
+
+	UFUNCTION(BlueprintPure,Category="AuraAbilitySystemLibrary | GameplayMechanics")		//防止敌人误伤友军
+	static bool IsNotFriend(AActor* FirstActor,AActor* SecondActor);
 };

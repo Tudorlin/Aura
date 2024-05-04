@@ -45,16 +45,25 @@ public:
 	FGameplayTag Input_4;
 
 
+	//伤害类型
 	FGameplayTag Damage;
 	FGameplayTag Damage_Fire;	//火焰伤害
 	FGameplayTag Damage_Lightning;		//雷电伤害
 	FGameplayTag Damage_Arcane; //魔法伤害
 	FGameplayTag Damage_Physics;	//物理伤害
-	
+
+	//抗性
 	FGameplayTag Attributes_Resistance_Fire;	//抗性
 	FGameplayTag Attributes_Resistance_Lightning;
 	FGameplayTag Attributes_Resistance_Arcane;
 	FGameplayTag Attributes_Resistance_Physical;
+
+	FGameplayTag Abilities_Attack;		//攻击
+
+	//蒙太奇
+	FGameplayTag Montage_Attack_Weapon;
+	FGameplayTag Montage_Attack_LeftHand;
+	FGameplayTag Montage_Attack_RightHand;
 
 	TMap<FGameplayTag,FGameplayTag> DamageTypesToResistances;
 

@@ -23,7 +23,7 @@ public:
 	UPROPERTY(VisibleAnywhere)
 	TObjectPtr<UProjectileMovementComponent> ProjectileMovement;
 
-	UPROPERTY(BlueprintReadWrite, meta = (ExposeOnSpawn = true))
+	UPROPERTY(BlueprintReadWrite, meta = (ExposeOnSpawn = true))		//可以通过这玩意获取Avatar的信息
 	FGameplayEffectSpecHandle DamageEffectSpecHandle;
 
 protected:
