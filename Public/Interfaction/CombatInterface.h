@@ -7,6 +7,8 @@
 #include "UObject/Interface.h"
 #include "CombatInterface.generated.h"
 
+class UNiagaraSystem;
+
 USTRUCT(BlueprintType)
 struct FTaggedMontage	//将蒙太奇动画关联到Tag
 {
@@ -17,6 +19,12 @@ struct FTaggedMontage	//将蒙太奇动画关联到Tag
 
 	UPROPERTY(EditDefaultsOnly,BlueprintReadOnly)
 	FGameplayTag MontageTag;
+
+	UPROPERTY(EditDefaultsOnly,BlueprintReadOnly)
+	FGameplayTag SocketTag;
+
+	UPROPERTY(EditDefaultsOnly,BlueprintReadOnly)
+	USoundBase* HitSound = nullptr;
 };
 
 UINTERFACE(MinimalAPI,BlueprintType)
@@ -38,7 +46,7 @@ public:
 
 
 	UFUNCTION(BlueprintCallable,BlueprintNativeEvent) //注意CharacterBase继承了这个接口
-	FVector GetCombatSocketLocation(const FGameplayTag& MontageTag);
+	FVector GetCombatSocketLocation(const FGameplayTag& CombatSocketTag);
 
 	UFUNCTION(BlueprintImplementableEvent,BlueprintCallable)
 	void UpdateFacingTarget(const FVector Target);    //用于降低MotionWarping与角色之间的耦合性，转化为接口类而不是角色
@@ -56,4 +64,16 @@ public:
 
 	UFUNCTION(BlueprintCallable,BlueprintNativeEvent)
 	TArray<FTaggedMontage> GetAttackMontages();
+
+	UFUNCTION(BlueprintCallable,BlueprintNativeEvent)
+	UNiagaraSystem* GetBloodEffect();
+	
+	UFUNCTION(BlueprintCallable,BlueprintNativeEvent)
+	FTaggedMontage GetTaggedMontageByTag(const FGameplayTag& MontageTag);	//在Cue中使用，GA中传递给GC之后通过Tag获取对应的声音或粒子资产
+
+	UFUNCTION(BlueprintCallable,BlueprintNativeEvent)
+	int32 GetMinionCount();		//获取已召唤的个数
+
+	UFUNCTION(BlueprintCallable,BlueprintNativeEvent)
+	void IncrementMinionCount(int32 Amount);
 };

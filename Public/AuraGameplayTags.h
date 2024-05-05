@@ -59,11 +59,19 @@ public:
 	FGameplayTag Attributes_Resistance_Physical;
 
 	FGameplayTag Abilities_Attack;		//攻击
+	FGameplayTag Abilities_Summon;		//召唤
 
-	//蒙太奇
-	FGameplayTag Montage_Attack_Weapon;
-	FGameplayTag Montage_Attack_LeftHand;
-	FGameplayTag Montage_Attack_RightHand;
+	//CombatSocket
+	FGameplayTag CombatSocket_Weapon;
+	FGameplayTag CombatSocket_LeftHand;
+	FGameplayTag CombatSocket_RightHand;
+	FGameplayTag CombatSocket_Tail;
+
+	//蒙太奇,将插槽Tag与蒙太奇Tag区分开，同时也用于攻击时应当播放的音效，在GameplayCue中使用
+	FGameplayTag Montage_Attack_1;
+	FGameplayTag Montage_Attack_2;
+	FGameplayTag Montage_Attack_3;
+	FGameplayTag Montage_Attack_4;
 
 	TMap<FGameplayTag,FGameplayTag> DamageTypesToResistances;
 

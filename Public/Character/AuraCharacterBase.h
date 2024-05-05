@@ -7,6 +7,7 @@
 #include "Interfaction/CombatInterface.h"
 #include "AuraCharacterBase.generated.h"
 
+class UNiagaraSystem;
 class UGameplayAbility;
 class UGameplayEffect;
 class UAttributeSet;
@@ -26,11 +27,15 @@ public:
 
 	//CombatInterface
 	virtual void Die() override;
-	virtual FVector GetCombatSocketLocation_Implementation(const FGameplayTag& MontageTag) override;
+	virtual FVector GetCombatSocketLocation_Implementation(const FGameplayTag& CombatSocketTag) override;
 	virtual UAnimMontage* GetHitMontage_Implementation() override;
 	virtual bool IsDead_Implementation() const override;
 	virtual AActor* GetAvatar_Implementation() override;
 	virtual TArray<FTaggedMontage> GetAttackMontages_Implementation() override;
+	virtual UNiagaraSystem* GetBloodEffect_Implementation() override;
+	virtual FTaggedMontage GetTaggedMontageByTag_Implementation(const FGameplayTag& MontageTag) override;
+	virtual int32 GetMinionCount_Implementation() override;
+	virtual void IncrementMinionCount_Implementation(int32 Amount) override;
 	//CombatInterface
 	
 
@@ -53,6 +58,9 @@ protected:
 
 	UPROPERTY(EditAnywhere,Category="Combat")
 	FName RightHandSocketName;
+	
+	UPROPERTY(EditAnywhere,Category="Combat")
+	FName TailSocketName;
 	
 	UPROPERTY()
 	TObjectPtr<UAbilitySystemComponent> AbilitySystemComponent;
@@ -96,7 +104,13 @@ protected:
 	UPROPERTY(EditAnywhere,Category=Dissolve)
 	TObjectPtr<UMaterialInstance> WeaponDissolveMaterialInstance;
 
-	
+	UPROPERTY(EditAnywhere,BlueprintReadOnly)
+	UNiagaraSystem* BloodEffect;
+
+	UPROPERTY(EditAnywhere,BlueprintReadOnly,Category="Combat")
+	USoundBase* DeathSound;
+
+	int32 MinionCount = 0;//召唤个数
 
 private:
 	UPROPERTY(EditAnywhere,Category="Abilities")

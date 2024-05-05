@@ -19,14 +19,14 @@ void UAuraProjectileSpell::ActivateAbility(const FGameplayAbilitySpecHandle Hand
 	
 }
 
-void UAuraProjectileSpell::SpawnProjectile(const FVector& ProjectileTargetLocation)
+void UAuraProjectileSpell::SpawnProjectile(const FVector& ProjectileTargetLocation,const FGameplayTag& SocketTag)
 {
 	const bool bIsServer = GetAvatarActorFromActorInfo()->HasAuthority();    //检查是否为服务器
 	if(!bIsServer) return;
 	// ICombatInterface* CombatInterface = Cast<ICombatInterface>(GetAvatarActorFromActorInfo());  //从当前能力获取AvatarActor.将其转成战斗接口，调用其中的获取插槽的位置细信息函数
 	// if(CombatInterface)
 	// {
-	const FVector SocketLocation = ICombatInterface::Execute_GetCombatSocketLocation(GetAvatarActorFromActorInfo(),FAuraGameplayTags::Get().Montage_Attack_Weapon);	//使用BlueprintNativeEvent或BlueprintImplementableEvent修饰的函数要用这种调用方式调用执行版本，
+	const FVector SocketLocation = ICombatInterface::Execute_GetCombatSocketLocation(GetAvatarActorFromActorInfo(),SocketTag);	//使用BlueprintNativeEvent或BlueprintImplementableEvent修饰的函数要用这种调用方式调用执行版本，
 	FRotator Rotation = (ProjectileTargetLocation-SocketLocation).Rotation();
 
 	FTransform SpawnTransform;

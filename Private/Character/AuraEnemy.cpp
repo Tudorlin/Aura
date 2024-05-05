@@ -75,6 +75,7 @@ int32 AAuraEnemy::GetPlayerLevel()
 void AAuraEnemy::Die()
 {
 	SetLifeSpan(LifeSpan);
+	if(AuraAIController) AuraAIController->GetBlackboardComponent()->SetValueAsBool("IsDead",true);	//设置黑板键
 	Super::Die();
 }
 

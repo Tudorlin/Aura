@@ -5,6 +5,7 @@
 #include "AbilitySystem/AuraAbilitySystemComponent.h"
 #include "Aura/Aura.h"
 #include "Components/CapsuleComponent.h"
+#include "Kismet/GameplayStatics.h"
 
 
 AAuraCharacterBase::AAuraCharacterBase()
@@ -48,6 +49,33 @@ TArray<FTaggedMontage> AAuraCharacterBase::GetAttackMontages_Implementation()
 	return AttackMontage;
 }
 
+UNiagaraSystem* AAuraCharacterBase::GetBloodEffect_Implementation()
+{
+	return BloodEffect;
+}
+
+FTaggedMontage AAuraCharacterBase::GetTaggedMontageByTag_Implementation(const FGameplayTag& MontageTag)
+{
+	for(FTaggedMontage TaggedMontage : AttackMontage)
+	{
+		if(TaggedMontage.MontageTag==MontageTag)
+		{
+			return TaggedMontage;
+		}
+	}
+	return FTaggedMontage();
+}
+
+int32 AAuraCharacterBase::GetMinionCount_Implementation()
+{
+	return MinionCount;
+}
+
+void AAuraCharacterBase::IncrementMinionCount_Implementation(int32 Amount)
+{
+	MinionCount+=Amount;
+}
+
 void AAuraCharacterBase::Die()
 {
 	Weapon->DetachFromComponent(FDetachmentTransformRules(EDetachmentRule::KeepWorld,true));
@@ -75,6 +103,7 @@ void AAuraCharacterBase::Dissolve()
 
 void AAuraCharacterBase::MulticastHandleDeath_Implementation()
 {
+	UGameplayStatics::PlaySoundAtLocation(this,DeathSound,GetActorLocation(),GetActorRotation());
 	Weapon->SetSimulatePhysics(true);			//对于武器，启用物理模拟
 	Weapon->SetEnableGravity(true);
 	Weapon->SetCollisionEnabled(ECollisionEnabled::PhysicsOnly);
@@ -93,15 +122,17 @@ void AAuraCharacterBase::BeginPlay()
 	
 }
 
-FVector AAuraCharacterBase::GetCombatSocketLocation_Implementation(const FGameplayTag& MontageTag)	//根据Tag返回插槽位置
+FVector AAuraCharacterBase::GetCombatSocketLocation_Implementation(const FGameplayTag& CombatSocketTag)	//根据Tag返回插槽位置
 {
 	const FAuraGameplayTags GameplayTag = FAuraGameplayTags::Get();
-	if(MontageTag.MatchesTag(GameplayTag.Montage_Attack_Weapon)&&IsValid(Weapon))
+	if(CombatSocketTag.MatchesTag(GameplayTag.CombatSocket_Weapon)&&IsValid(Weapon))
 		return Weapon->GetSocketLocation(WeaponTipSocketName);
-	if(MontageTag.MatchesTag(GameplayTag.Montage_Attack_LeftHand))
+	if(CombatSocketTag.MatchesTag(GameplayTag.CombatSocket_LeftHand))
 		return GetMesh()->GetSocketLocation(LeftHandSocketName);		//注意没有武器
-	if(MontageTag.MatchesTag(GameplayTag.Montage_Attack_RightHand))
+	if(CombatSocketTag.MatchesTag(GameplayTag.CombatSocket_RightHand))
 		return GetMesh()->GetSocketLocation(RightHandSocketName);
+	if(CombatSocketTag.MatchesTag(GameplayTag.CombatSocket_Tail))
+		return GetMesh()->GetSocketLocation(TailSocketName);
 	return FVector();
 }
 
