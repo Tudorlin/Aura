@@ -5,6 +5,7 @@
 
 #include "AbilitySystem/AuraAbilitySystemComponent.h"
 #include "AbilitySystem/AuraAttributeSet.h"
+#include "AbilitySystem/Data/AbilityInfo.h"
 
 void UOverlayWidgetController::BroadcastInitialValue()   //初始化的时候被调用，广播属性初始值
 {
@@ -37,21 +38,46 @@ void UOverlayWidgetController::BindCallbacksDependencies()   //绑定属性变�
 	AbilitySystemComponent->GetGameplayAttributeValueChangeDelegate(
 		AuraAttributeSet->GetMaxManaAttribute()).AddLambda([this](const FOnAttributeChangeData& Data){ OnMaxManaChanged.Broadcast(Data.NewValue); });
 
-	
-	Cast<UAuraAbilitySystemComponent>(AbilitySystemComponent)->EffectAssetTags.AddLambda(   //牢记AuraWidgetController中有包括能力组件，属性集，玩家控制器和玩家状态用于角色间的通信
-	[this](const FGameplayTagContainer& AssetTags)  //绑定到Lambda表达式，即匿名函数，是c++11的语法，详情可以找资料看看;如果要调用成员函数，可以捕获this指针，也可以将成员函数设置为静态
+	if(UAuraAbilitySystemComponent* AuraASC = Cast<UAuraAbilitySystemComponent>(AbilitySystemComponent))
 	{
-		for(const FGameplayTag& tag : AssetTags)   //目前的作用:位于GE中的tag会被添加到容器中，然后通过标签获取数据表中的行，然后打印出相应的信息
+		if(AuraASC->bStartupAbilities)
 		{
-			FGameplayTag MessageTag = FGameplayTag::RequestGameplayTag("Message");  //获取一个与Message对应的标签，在项目设置中定义了此标签，用于查找指定属性，如果找不到则返回空的FGameplayTag
-			if(tag.MatchesTag(MessageTag))   //检查当前标签是否与MessageTag匹配
+			OnInitializeStartupAbilities(AuraASC);	//技能都初始化完成之后调用函数初始化技能图标相关的信息
+		}
+		else
+		{
+			AuraASC->AbilitiesGivenDelegate.AddUObject(this,&UOverlayWidgetController::OnInitializeStartupAbilities);//运行到这技能还未初始化完成时将图标初始化函数绑定到技能初始化完成的委托,广播后触发回调。
+		}
+		AuraASC->EffectAssetTags.AddLambda(   //牢记AuraWidgetController中有包括能力组件，属性集，玩家控制器和玩家状态用于角色间的通信
+		[this](const FGameplayTagContainer& AssetTags)  //绑定到Lambda表达式，即匿名函数，是c++11的语法，详情可以找资料看看;如果要调用成员函数，可以捕获this指针，也可以将成员函数设置为静态
+		{
+			for(const FGameplayTag& tag : AssetTags)   //目前的作用:位于GE中的tag会被添加到容器中，然后通过标签获取数据表中的行，然后打印出相应的信息
 			{
-				const FUIWidgetRow* Row = GetDataTableRowByTag<FUIWidgetRow>(MessageWidgetDataTable,tag);
-				MessageWidgetRowDelegate.Broadcast(*Row);
+				FGameplayTag MessageTag = FGameplayTag::RequestGameplayTag("Message");  //获取一个与Message对应的标签，在项目设置中定义了此标签，用于查找指定属性，如果找不到则返回空的FGameplayTag
+				if(tag.MatchesTag(MessageTag))   //检查当前标签是否与MessageTag匹配
+				{
+					const FUIWidgetRow* Row = GetDataTableRowByTag<FUIWidgetRow>(MessageWidgetDataTable,tag);
+					MessageWidgetRowDelegate.Broadcast(*Row);
+				}
 			}
 		}
+		);
 	}
-	);
+}
+
+void UOverlayWidgetController::OnInitializeStartupAbilities(UAuraAbilitySystemComponent* AuraAbilitySystemComponent)
+{
+	if(!AuraAbilitySystemComponent->bStartupAbilities) return;
+	//每个技能初始化时创建一个委托并绑定表达式，在能力组件类中调用ForEachAbility触发回调
+	FForEachAbility BroadcastDelegate;		//传入一个AbilitySpec&类型的参数
+	BroadcastDelegate.BindLambda([this,AuraAbilitySystemComponent](const FGameplayAbilitySpec& AbilitySpec)
+	{
+		FAuraAbilityInfo Info = AbilityInfo->FindAbilityInfoByTag(AuraAbilitySystemComponent->GetAbilityTagFromSpec(AbilitySpec));
+		Info.InputTag = AuraAbilitySystemComponent->GetInputTagFromSpec(AbilitySpec);	//设置两个Tag
+		Info.AbilityTag = AuraAbilitySystemComponent->GetAbilityTagFromSpec(AbilitySpec);
+		AbilityInfoDelegate.Broadcast(Info);	//广播信息
+	});
+	AuraAbilitySystemComponent->ForEachAbility(BroadcastDelegate);
 }
 
 // void UOverlayWidgetController::HealthChanged(const FOnAttributeChangeData& Data) const  

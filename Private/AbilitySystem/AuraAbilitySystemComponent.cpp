@@ -26,7 +26,8 @@ void UAuraAbilitySystemComponent::AddCharacterAbilities(
 			GiveAbility(AbilitySpec);
 		}
 	}
-		
+	bStartupAbilities  = true;
+	AbilitiesGivenDelegate.Broadcast(this);	//广播能力组件
 }
 
 void UAuraAbilitySystemComponent::AbilityInputTagHeld(const FGameplayTag& InputTag)    //这两个函数会在控制器中通过按键绑定的函数进行调用
@@ -55,8 +56,60 @@ void UAuraAbilitySystemComponent::AbilityInputTagReleased(const FGameplayTag& In
 	}
 }
 
+void UAuraAbilitySystemComponent::ForEachAbility(const FForEachAbility& Delegate)
+{
+	FScopedAbilityListLock ActiveScopeLock(*this);		//能力锁，在遍历时锁定组件，防止在遍历过程中移除能力，生命周期结束时自动解锁
+	for(const FGameplayAbilitySpec AbilitySpec : GetActivatableAbilities())
+	{
+		if(!Delegate.ExecuteIfBound(AbilitySpec))		//如果该委托有绑定回调就触发否则就打印Log
+		{
+			UE_LOG(LogTemp, Error, TEXT("Failed to execute delegate in %hs"), __FUNCTION__);
+		}
+	}
+}
+
+FGameplayTag UAuraAbilitySystemComponent::GetAbilityTagFromSpec(const FGameplayAbilitySpec& AbilitySpec)
+{
+	if(AbilitySpec.Ability)
+	{
+		for(FGameplayTag Tag : AbilitySpec.Ability.Get()->AbilityTags)
+		{
+			if(Tag.MatchesTag(FGameplayTag::RequestGameplayTag(FName("Abilities"))))
+			{
+				return Tag;
+			}
+		}
+	}
+	return FGameplayTag();
+}
+
+FGameplayTag UAuraAbilitySystemComponent::GetInputTagFromSpec(const FGameplayAbilitySpec& AbilitySpec)
+{
+	if(AbilitySpec.Ability)
+	{
+		for(FGameplayTag Tag : AbilitySpec.DynamicAbilityTags)
+		{
+			if(Tag.MatchesTag(FGameplayTag::RequestGameplayTag(FName("Input"))))	//注意这里名字跟教程中的不一样，需要按自己的来
+			{
+				return Tag;
+			}
+		}
+	}
+	return FGameplayTag();
+}
+
+void UAuraAbilitySystemComponent::OnRep_ActivateAbilities()	//ActivateAbilities即被激活的能力发生改变时触发,不重写的话广播只会在服务器上执行，客户端无法收到消息
+{
+	Super::OnRep_ActivateAbilities();
+	if(!bStartupAbilities)
+	{
+		bStartupAbilities = true;
+		AbilitiesGivenDelegate.Broadcast(this);
+	}
+}
+
 void UAuraAbilitySystemComponent::EffectApplied_Implementation(UAbilitySystemComponent* AbilitySystemComponent,
-                                                const FGameplayEffectSpec& EffectSpec, FActiveGameplayEffectHandle ActiveEffectHandle)
+                                                               const FGameplayEffectSpec& EffectSpec, FActiveGameplayEffectHandle ActiveEffectHandle)
 {
 	FGameplayTagContainer TagContainer;
 	EffectSpec.GetAllAssetTags(TagContainer);   //将tag储存在传入的TagContainer中

@@ -114,7 +114,16 @@ void FAuraGameplayTags::InitializeNativeGameplayTags()
 	GameplayTags.Abilities_Summon = UGameplayTagsManager::Get().AddNativeGameplayTag(
 		FName("Abilities.Summon"),FString("召唤"));
 	//***********************************************************************************************
-	
+
+	//技能图标相关Tag
+	GameplayTags.Abilities_Fire_FireBlot = UGameplayTagsManager::Get().AddNativeGameplayTag(
+		FName("Abilities.Fire.FireBlot"),FString("火球技能Tag"));
+	//**************************************************************************************
+
+	//技能冷却
+	GameplayTags.Abilities_Cooldown_FireBlot = UGameplayTagsManager::Get().AddNativeGameplayTag(
+		FName("Abilities.Cooldown.FireBlot"),FString("火球冷却"));
+	//***************************************************************************************************
 	//CombatSocket
 	GameplayTags.CombatSocket_Weapon = UGameplayTagsManager::Get().AddNativeGameplayTag(
 		FName("CombatSocket.Weapon"),FString("武器攻击蒙太奇"));

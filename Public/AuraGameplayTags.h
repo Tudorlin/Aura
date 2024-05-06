@@ -61,6 +61,12 @@ public:
 	FGameplayTag Abilities_Attack;		//攻击
 	FGameplayTag Abilities_Summon;		//召唤
 
+	//技能图标相关Tag
+	FGameplayTag Abilities_Fire_FireBlot;
+
+	//技能冷却Tag
+	FGameplayTag Abilities_Cooldown_FireBlot;
+
 	//CombatSocket
 	FGameplayTag CombatSocket_Weapon;
 	FGameplayTag CombatSocket_LeftHand;
