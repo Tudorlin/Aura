@@ -33,7 +33,7 @@ public:
 	//End IEnemyInterface End
 
 	/********* CombatInterface Start ****************/
-	virtual int32 GetPlayerLevel() override;
+	virtual int32 GetPlayerLevel_Implementation()  override;
 	virtual void Die() override;
 	/********* CombatInterface End ****************/
 
@@ -64,9 +64,6 @@ protected:
 
 	UPROPERTY(VisibleAnywhere,BlueprintReadOnly)
 	TObjectPtr<UWidgetComponent> HealthBar;
-
-	UPROPERTY(EditAnywhere,BlueprintReadOnly,Category="Character Default Class")  //敌人类型
-	ECharacterClass CharacterClass = ECharacterClass::Warrior;
 
 	UPROPERTY(EditAnywhere,Category="AI")
 	TObjectPtr<UBehaviorTree>BehaviorTree;

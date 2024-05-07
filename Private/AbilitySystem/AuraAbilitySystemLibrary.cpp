@@ -88,9 +88,9 @@ void UAuraAbilitySystemLibrary::GiveStartupAbilities(const UObject* WorldContext
 	const FCharacterClassDefaultInfo CharacterClassDefaultInfo = CharacterClassInfo->GetClassDefaultInfo(CharacterClass);
 	for(TSubclassOf<UGameplayAbility> Ability : CharacterClassDefaultInfo.StartupAbilities)
 	{
-		if(ICombatInterface* CombatInterface = Cast<ICombatInterface>(ASC->GetAvatarActor()))	//通过接口获取AI等级
+		if(ASC->GetAvatarActor()->Implements<UCombatInterface>())	//通过接口获取AI等级
 		{
-			FGameplayAbilitySpec AbilitySpec = FGameplayAbilitySpec(Ability,CombatInterface->GetPlayerLevel());
+			FGameplayAbilitySpec AbilitySpec = FGameplayAbilitySpec(Ability,ICombatInterface::Execute_GetPlayerLevel(ASC->GetAvatarActor()));
 			ASC->GiveAbility(AbilitySpec);
 		}
 	}
@@ -168,4 +168,16 @@ bool UAuraAbilitySystemLibrary::IsNotFriend(AActor* FirstActor, AActor* SecondAc
 	const bool bBothEnemy = FirstActor->ActorHasTag("Enemy")&&SecondActor->ActorHasTag("Enemy");
 	const bool bFriend = bBothEnemy||bBothPlayer;
 	return !bFriend;
+}
+
+int32 UAuraAbilitySystemLibrary::GetXPRewardForClassAndLevel(const UObject* WorldContextObject,
+	ECharacterClass CharacterClass, int32 CharacterLevel)
+{
+	UCharacterClassInfo* CharacterClassInfo = GetCharacterInfo(WorldContextObject);		//获取角色信息
+	if(CharacterClassInfo == nullptr) return 0;
+
+	const FCharacterClassDefaultInfo CharacterClassDefaultInfo = CharacterClassInfo->GetClassDefaultInfo(CharacterClass);	//通过角色类型获取具体信息
+	const float XPReward = CharacterClassDefaultInfo.XPReward.GetValueAtLevel(CharacterLevel);	//根据等级获取经验值
+
+	return static_cast<int32>(XPReward);
 }

@@ -55,4 +55,6 @@ public:
 
 	UFUNCTION(BlueprintPure,Category="AuraAbilitySystemLibrary | GameplayMechanics")		//防止敌人误伤友军
 	static bool IsNotFriend(AActor* FirstActor,AActor* SecondActor);
+	
+	static int32 GetXPRewardForClassAndLevel(const UObject* WorldContextObject, ECharacterClass CharacterClass, int32 CharacterLevel);
 };

@@ -25,6 +25,8 @@ public:
 	FAbilityGiven AbilitiesGivenDelegate;		//技能初始化完成时将角色的能力组件广播
 
 	void AddCharacterAbilities(const TArray<TSubclassOf<UGameplayAbility>>& StartupAbilities);
+	void AddCharacterPassiveAbilities(const TArray<TSubclassOf<UGameplayAbility>>& StartupPassiveAbilities);	//添加被动技能
+	bool bStartupAbilitiesGiven = false;
 	bool bStartupAbilities = false;		//判断技能初始化是否完成
 	
 	void AbilityInputTagHeld(const FGameplayTag& InputTag);    //按下按键时尝试激活能力

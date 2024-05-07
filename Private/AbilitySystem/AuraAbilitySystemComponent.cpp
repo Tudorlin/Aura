@@ -30,6 +30,16 @@ void UAuraAbilitySystemComponent::AddCharacterAbilities(
 	AbilitiesGivenDelegate.Broadcast(this);	//广播能力组件
 }
 
+void UAuraAbilitySystemComponent::AddCharacterPassiveAbilities(
+	const TArray<TSubclassOf<UGameplayAbility>>& StartupPassiveAbilities)
+{
+	for (const TSubclassOf<UGameplayAbility> AbilityClass : StartupPassiveAbilities)
+	{
+		FGameplayAbilitySpec AbilitySpec = FGameplayAbilitySpec(AbilityClass,1.f);
+		GiveAbilityAndActivateOnce(AbilitySpec);
+	}
+}
+
 void UAuraAbilitySystemComponent::AbilityInputTagHeld(const FGameplayTag& InputTag)    //这两个函数会在控制器中通过按键绑定的函数进行调用
 {
 	if(!InputTag.IsValid()) return;

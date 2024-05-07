@@ -35,6 +35,9 @@ public:
 	FGameplayTag Attributes_Secondary_MaxHealth;
 	FGameplayTag Attributes_Secondary_MaxMana;
 
+	//元属性
+	FGameplayTag Attributes_Meta_IncomingXP;
+
 
 	//输入tag
 	FGameplayTag InputTag_LMB;
@@ -82,6 +85,7 @@ public:
 	TMap<FGameplayTag,FGameplayTag> DamageTypesToResistances;
 
 	FGameplayTag Effect_HitReact;   //受击时的反应
+
 	
 protected:
 

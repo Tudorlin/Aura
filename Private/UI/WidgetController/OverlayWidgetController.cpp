@@ -6,6 +6,8 @@
 #include "AbilitySystem/AuraAbilitySystemComponent.h"
 #include "AbilitySystem/AuraAttributeSet.h"
 #include "AbilitySystem/Data/AbilityInfo.h"
+#include "AbilitySystem/Data/LevelInfo.h"
+#include "Player/AuraPlayerState.h"
 
 void UOverlayWidgetController::BroadcastInitialValue()   //初始化的时候被调用，广播属性初始值
 {
@@ -18,6 +20,13 @@ void UOverlayWidgetController::BroadcastInitialValue()   //初始化的时候被
 
 void UOverlayWidgetController::BindCallbacksDependencies()   //绑定属性变化的回调,绑定的时机为AuraHUD中对OverlayWidgetController初始完成之后
 {
+	AAuraPlayerState * AuraPlayerState = CastChecked<AAuraPlayerState>(PlayerState);
+	AuraPlayerState->OnXPChangedDelegate.AddUObject(this,&UOverlayWidgetController::OnXPChanged);	//绑定函数到玩家状态中的委托，
+	AuraPlayerState->OnLevelChangedDelegate.AddLambda(		//当玩家等级变化时触发Lambda表达式，将新的等级广播到控制器中
+		[this](int32 NewLevel)
+		{
+			OnPlayerLevelChangedDelegate.Broadcast(NewLevel);
+		});
 	const UAuraAttributeSet* AuraAttributeSet = CastChecked<UAuraAttributeSet>(AttributesSet);
 	//***************************绑定改为Lambda表达式
 	// AbilitySystemComponent->GetGameplayAttributeValueChangeDelegate(
@@ -78,6 +87,26 @@ void UOverlayWidgetController::OnInitializeStartupAbilities(UAuraAbilitySystemCo
 		AbilityInfoDelegate.Broadcast(Info);	//广播信息
 	});
 	AuraAbilitySystemComponent->ForEachAbility(BroadcastDelegate);
+}
+
+void UOverlayWidgetController::OnXPChanged(int32 NewXP) const		//计算百分比
+{
+	const AAuraPlayerState*AuraPlayerState = CastChecked<AAuraPlayerState>(PlayerState);
+	const ULevelInfo* LevelUpInfo = AuraPlayerState->LevelUpInfo;	//通过玩家状态获取存有升级信息的数字资产
+	checkf(LevelUpInfo, TEXT("Unabled to find LevelUpInfo. Please fill out AuraPlayerState Blueprint"));
+	const int32 Level = LevelUpInfo->FindLevelForXP(NewXP);	//获取当前等级
+	const int32 MaxLevel = LevelUpInfo->LevelUpInformation.Num();
+	if(Level<MaxLevel&&Level>0)
+	{
+		const int32 LevelUpRequirement = LevelUpInfo->LevelUpInformation[Level].LevelRequirement;	//获取当前升级所需经验
+		const int32 PreLevelUpRequirement = LevelUpInfo->LevelUpInformation[Level-1].LevelRequirement;	//获取前一级升级所需经验
+		const int32 DeltaLevelRequirement = LevelUpRequirement - PreLevelUpRequirement;	//获取从当前等级升级到下一级所需的经验
+		const int32 XPForThisLevel = NewXP - PreLevelUpRequirement;	//获取当前经验条填充了多少经验
+
+		const float XPBarPercent = static_cast<float>(XPForThisLevel)/static_cast<float>(DeltaLevelRequirement);	//计算百分比
+
+		OnXPPercentChangedDelegate.Broadcast(XPBarPercent);	//将数据广播到控制器中
+	}
 }
 
 // void UOverlayWidgetController::HealthChanged(const FOnAttributeChangeData& Data) const  

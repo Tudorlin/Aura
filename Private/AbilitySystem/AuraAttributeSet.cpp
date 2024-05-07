@@ -10,6 +10,7 @@
 #include "GameplayAbilitySet.h"
 #include "AbilitySystem/AuraAbilitySystemLibrary.h"
 #include "Interfaction/CombatInterface.h"
+#include "Interfaction/PlayerInterface.h"
 #include "Kismet/GameplayStatics.h"
 #include "Player/AuraPlayerController.h"
 
@@ -134,6 +135,7 @@ void UAuraAttributeSet::PostGameplayEffectExecute(const FGameplayEffectModCallba
 				{
 					CombatInterface->Die();
 				}
+				SendXPEvent(Props);
 			}
 			else//没死的情况触发受击
 			{
@@ -145,6 +147,35 @@ void UAuraAttributeSet::PostGameplayEffectExecute(const FGameplayEffectModCallba
 			const bool bCriticalHit = UAuraAbilitySystemLibrary::IsCriticalHit(Props.EffectContextHandle);
 			
 			ShowFloatingText(Props,LocalIncomingDamage,bBlock,bCriticalHit);		//伤害计算的同时将伤害值传入Aura控制器中的显示函数,再通过调用函数创建出Text组件
+		}
+	}
+	if (Data.EvaluatedData.Attribute == GetIncomingXPAttribute())
+	{
+		const float LocalIncomingXP = GetIncomingXP();		//此次击杀获得的经验
+		SetIncomingXP(0.f);
+
+		if(Props.SourceCharacter->Implements<UPlayerInterface>())
+		{
+			const int32 CurrentLevel = ICombatInterface::Execute_GetPlayerLevel(Props.SourceCharacter);	//获取当前等级
+			const int32 CurrentXP = IPlayerInterface::Execute_GetXP(Props.SourceCharacter);		//获取当前经验
+
+			const int32 NewLevel = IPlayerInterface::Execute_FindLevelForXP(Props.SourceCharacter, CurrentXP + LocalIncomingXP);	//查找当前经验加上获得的经验可以达到的等级
+			const int32 NumLevelUps = NewLevel - CurrentLevel;		//提升的等级
+			if (NumLevelUps > 0)
+			{
+				const int32 AttributePointsReward = IPlayerInterface::Execute_GetAttributePointsReward(Props.SourceCharacter, CurrentLevel);
+				const int32 SpellPointsReward = IPlayerInterface::Execute_GetSpellPointsReward(Props.SourceCharacter, CurrentLevel);
+
+				IPlayerInterface::Execute_AddToPlayerLevel(Props.SourceCharacter, NumLevelUps);
+				IPlayerInterface::Execute_AddToAttributePoints(Props.SourceCharacter, AttributePointsReward);
+				IPlayerInterface::Execute_AddToSpellPoints(Props.SourceCharacter, SpellPointsReward);
+
+				SetHealth(GetMaxHealth());		//升级重置生命和魔法值
+				SetMana(GetMaxMana());
+
+				IPlayerInterface::Execute_LevelUp(Props.SourceCharacter);
+			}
+			IPlayerInterface::Execute_AddToXP(Props.SourceCharacter,LocalIncomingXP);	//调用接口函数增加经验
 		}
 	}
 }
@@ -194,6 +225,24 @@ void UAuraAttributeSet::ShowFloatingText(const FEffectProperties& Props, float D
 		{
 			AuraPlayerController->ShowDamageText(Damage,Props.TargetCharacter,bBlocked,bCriticalHit);
 		}
+	}
+}
+
+void UAuraAttributeSet::SendXPEvent(const FEffectProperties& Props)
+{
+	if(Props.TargetCharacter->Implements<UCombatInterface>())
+	{
+		const int32 TargetLevel = ICombatInterface::Execute_GetPlayerLevel(Props.TargetCharacter);	//获取敌人等级
+		const ECharacterClass CharacterClass = ICombatInterface::Execute_GetCharacterClass(Props.TargetCharacter);//获取敌人类型
+		const int32 XPReward = UAuraAbilitySystemLibrary::GetXPRewardForClassAndLevel(Props.TargetCharacter,CharacterClass,TargetLevel);	//获取该敌人掉落的经验
+
+		const FAuraGameplayTags& GameplayTag = FAuraGameplayTags::Get();
+		FGameplayEventData Payload;
+		Payload.EventTag = GameplayTag.Attributes_Meta_IncomingXP;
+		Payload.EventMagnitude = XPReward;
+
+		UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(Props.SourceCharacter
+			,GameplayTag.Attributes_Meta_IncomingXP,Payload);		//敌人死亡的时候调用该函数触发事件
 	}
 }
 

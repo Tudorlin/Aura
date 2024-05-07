@@ -3,6 +3,7 @@
 
 #include "CoreMinimal.h"
 #include "AbilitySystemInterface.h"
+#include "AbilitySystem/Data/CharacterClassInfo.h"
 #include "GameFramework/Character.h"
 #include "Interfaction/CombatInterface.h"
 #include "AuraCharacterBase.generated.h"
@@ -36,6 +37,7 @@ public:
 	virtual FTaggedMontage GetTaggedMontageByTag_Implementation(const FGameplayTag& MontageTag) override;
 	virtual int32 GetMinionCount_Implementation() override;
 	virtual void IncrementMinionCount_Implementation(int32 Amount) override;
+	virtual ECharacterClass GetCharacterClass_Implementation() override;
 	//CombatInterface
 	
 
@@ -81,6 +83,9 @@ protected:
 	UPROPERTY(BlueprintReadOnly,EditAnywhere,Category="Attributes")
 	TSubclassOf<UGameplayEffect>DefaultVitalAttributes;
 
+	UPROPERTY(EditAnywhere,BlueprintReadOnly,Category="Character Default Class")  //敌人类型
+	ECharacterClass CharacterClass = ECharacterClass::Warrior;		//角色类型移至Base类中，通过继承接口的函数获取
+
 	//void InitializePrimaryAttributes() const;     由于两个初始化函数差不多，所以定义为传入一个GameplayEffect类作参数的函数
 	//void InitializeSecondaryAttributes() const;
 
@@ -115,6 +120,9 @@ protected:
 private:
 	UPROPERTY(EditAnywhere,Category="Abilities")
 	TArray<TSubclassOf<UGameplayAbility>> StartupAbilities;
+
+	UPROPERTY(EditAnywhere, Category = "Abilities")
+	TArray<TSubclassOf<UGameplayAbility>> StartupPassiveAbilities;
 
 	UPROPERTY(EditAnywhere,Category="Combact")
 	TObjectPtr<UAnimMontage> HitReactMontage;
