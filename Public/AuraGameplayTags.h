@@ -46,6 +46,8 @@ public:
 	FGameplayTag Input_2;
 	FGameplayTag Input_3;
 	FGameplayTag Input_4;
+	FGameplayTag Input_Passive_1;
+	FGameplayTag Input_Passive_2;
 
 
 	//伤害类型
@@ -61,11 +63,40 @@ public:
 	FGameplayTag Attributes_Resistance_Arcane;
 	FGameplayTag Attributes_Resistance_Physical;
 
+	//不同类型对应的Debuff
+	FGameplayTag Debuff_Burn;
+	FGameplayTag Debuff_Stun;
+	FGameplayTag Debuff_Arcane;
+	FGameplayTag Debuff_Physical;
+
+	//debuff相关的参数
+	FGameplayTag Debuff_Chance;
+	FGameplayTag Debuff_Damage;
+	FGameplayTag Debuff_Duration;
+	FGameplayTag Debuff_Frequency;
+	
+
+	
+	FGameplayTag Abilities_None;
 	FGameplayTag Abilities_Attack;		//攻击
 	FGameplayTag Abilities_Summon;		//召唤
+	
+
+	//技能状态相关:
+	FGameplayTag Abilities_HitReact;	//角色受击
+	
+	FGameplayTag Abilities_Status_Locked;
+	FGameplayTag Abilities_Status_Eligible;
+	FGameplayTag Abilities_Status_Unlocked;
+	FGameplayTag Abilities_Status_Equipped;
+
+	FGameplayTag Abilities_Type_Offensive;
+	FGameplayTag Abilities_Type_Passive;
+	FGameplayTag Abilities_Type_None;
 
 	//技能图标相关Tag
 	FGameplayTag Abilities_Fire_FireBlot;
+	FGameplayTag Abilities_Lightning_Electrocute;
 
 	//技能冷却Tag
 	FGameplayTag Abilities_Cooldown_FireBlot;
@@ -82,11 +113,10 @@ public:
 	FGameplayTag Montage_Attack_3;
 	FGameplayTag Montage_Attack_4;
 
-	TMap<FGameplayTag,FGameplayTag> DamageTypesToResistances;
+	TMap<FGameplayTag,FGameplayTag> DamageTypesToResistances;	//将各种类型的伤害与抗性对应
+	TMap<FGameplayTag,FGameplayTag> DamageTypesToDebuffs;		//将各种类型的伤害与debuff对应
 
 	FGameplayTag Effect_HitReact;   //受击时的反应
-
-	
 protected:
 
 private:

@@ -43,8 +43,36 @@ bool FAuraGameplayEffectContext::NetSerialize(FArchive& Ar, UPackageMap* Map, bo
 		{
 			RepBits |= 1<<8;
 		}
+		if (bIsSuccessfulDebuff)
+		{
+			RepBits |= 1 << 9;
+		}
+		if (DebuffDamage > 0.f)
+		{
+			RepBits |= 1 << 10;
+		}
+		if (DebuffDuration > 0.f)
+		{
+			RepBits |= 1 << 11;
+		}
+		if (DebuffFrequency > 0.f)
+		{
+			RepBits |= 1 << 12;
+		}
+		if (DamageType.IsValid())
+		{
+			RepBits |= 1 << 13;
+		}
+		if (!DeathImpulse.IsZero())
+		{
+			RepBits |= 1 << 14;
+		}
+		if (!KnockbackForce.IsZero())
+		{
+			RepBits |= 1 << 15;
+		}
 	}
-	Ar.SerializeBits(&RepBits,9);		//序列化，根据上面计算到的值进行序列化,完成之后可以在加载时知道哪些成员是有效的,LengthBits表示有多少成员被序列化
+	Ar.SerializeBits(&RepBits,15);		//序列化，根据上面计算到的值进行序列化,完成之后可以在加载时知道哪些成员是有效的,LengthBits表示有多少成员被序列化
 	
 	if(RepBits & (1<<0))			//检查哪些标志位是有效的，如果该标志位有效则对对应的成员进行序列化或反序列化
 	{
@@ -93,6 +121,41 @@ bool FAuraGameplayEffectContext::NetSerialize(FArchive& Ar, UPackageMap* Map, bo
 	if(RepBits & (1<<8))
 	{
 		Ar<<bIsCriticalHit;
+	}
+	if (RepBits & (1 << 9))
+	{
+		Ar << bIsSuccessfulDebuff;
+	}
+	if (RepBits & (1 << 10))
+	{
+		Ar << DebuffDamage;
+	}
+	if (RepBits & (1 << 11))
+	{
+		Ar << DebuffDuration;
+	}
+	if (RepBits & (1 << 12))
+	{
+		Ar << DebuffFrequency;
+	}
+	if (RepBits & (1 << 13))
+	{
+		if (Ar.IsLoading())
+		{
+			if (!DamageType.IsValid())
+			{
+				DamageType = TSharedPtr<FGameplayTag>(new FGameplayTag());
+			}
+		}
+		DamageType->NetSerialize(Ar, Map, bOutSuccess);
+	}
+	if (RepBits & (1 << 14))
+	{
+		DeathImpulse.NetSerialize(Ar, Map, bOutSuccess);
+	}
+	if (RepBits & (1 << 15))
+	{
+		KnockbackForce.NetSerialize(Ar, Map, bOutSuccess);
 	}
 	if(Ar.IsLoading())
 	{

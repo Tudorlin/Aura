@@ -3,13 +3,14 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "OverlayWidgetController.h"
 #include "UI/WidgetController/AuraWidgetController.h"
 #include "AttributeMenuWidgetController.generated.h"
 
 class UAttributeInfo;
 struct FAuraAttributeInfo;
 
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FAttributeInfoSignaure, const FAuraAttributeInfo&,Info);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FAttributeInfoSignaure, const FAuraAttributeInfo&,Info);	//属性信息委托
 
 /**
  * 
@@ -24,6 +25,12 @@ public:
 
 	UPROPERTY(BlueprintAssignable, Category="Attributes")
 	FAttributeInfoSignaure AttributeInfoDelegate;
+	
+	UPROPERTY(BlueprintAssignable,Category="GAS|Attributes")
+	FOnPlayerStateChangedSignature AttributePointChangedDelegate;
+
+	UFUNCTION(BlueprintCallable)
+	void UpgradeAttribute(const FGameplayTag AttributeTag);
 
 protected:
 	

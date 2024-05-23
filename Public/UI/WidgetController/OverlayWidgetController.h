@@ -35,10 +35,9 @@ struct FUIWidgetRow : public FTableRowBase
 // DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnMaxHealthChangedSignature,float,NewMaxHealth);
 // DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnManaChangedSignature,float,NewMana);
 // DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnMaxManaChangedSignature,float,NewMaxMana);
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnPlayerStateChangedSignature,int32,NewValue);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnAttributesChangedSignature,float,NewValue);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FMessageWidgetRowSignature,FUIWidgetRow,Row);
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FAbilityInfoSignature,const FAuraAbilityInfo&,Info);	//广播技能信息
+
 
 
 /**
@@ -68,9 +67,6 @@ public:
 	UPROPERTY(BlueprintAssignable,Category="GAS|Message")
 	FMessageWidgetRowSignature MessageWidgetRowDelegate;
 
-	UPROPERTY(BlueprintAssignable,Category="GAS|Message")		//返回技能图标这类信息
-	FAbilityInfoSignature AbilityInfoDelegate;
-
 	UPROPERTY(BlueprintAssignable,Category="GAS|Message")		//返回经验百分比
 	FOnAttributesChangedSignature OnXPPercentChangedDelegate;
 
@@ -88,15 +84,13 @@ protected:
 	UPROPERTY(EditDefaultsOnly,BlueprintReadOnly,Category="Widget Data")
 	TObjectPtr<UDataTable> MessageWidgetDataTable;     //数据资产
 
-	UPROPERTY(EditDefaultsOnly,BlueprintReadOnly,Category="Wodget Data")
-	TObjectPtr<UAbilityInfo> AbilityInfo;
-
 	template<typename T>
 	T* GetDataTableRowByTag(UDataTable* DataTable,const FGameplayTag Tag);  //根据tag获取数据表的行，使用模板可以返回任意类型的行
 
-	void OnInitializeStartupAbilities(UAuraAbilitySystemComponent* AuraAbilitySystemComponent);		//判断玩家技能初始化是否完成
+	void OnXPChanged(int32 NewXP);
 
-	void OnXPChanged(int32 NewXP) const;
+	void OnAbilityEquipped(const FGameplayTag& AbilityTag, const FGameplayTag& Status, 
+		const FGameplayTag& Slot, const FGameplayTag& PreviousSlot) const;	//装备技能后同步到主UI的技能栏中
 };
 
 template <typename T>

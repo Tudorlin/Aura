@@ -35,11 +35,19 @@ public:
 	UFUNCTION(BlueprintNativeEvent)		//获取与添加到属性点
 	int32 GetAttributePointsReward(int32 Level) const;
 
+	
+	UFUNCTION(BlueprintNativeEvent)
+	int32 GetAttributePoints() const;
+
 	UFUNCTION(BlueprintNativeEvent)
 	void AddToAttributePoints(int32 InAttributePoints);
 
 	UFUNCTION(BlueprintNativeEvent)		//获取与添加到技能点
 	int32 GetSpellPointsReward(int32 Level) const;
+	
+	
+	UFUNCTION(BlueprintNativeEvent)
+	int32 GetSpellPoints() const;
 	
 	UFUNCTION(BlueprintNativeEvent)
 	void AddToSpellPoints(int32 InSpellPoints);

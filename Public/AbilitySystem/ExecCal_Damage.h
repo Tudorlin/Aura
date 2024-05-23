@@ -15,6 +15,10 @@ class AURA_API UExecCal_Damage : public UGameplayEffectExecutionCalculation
 	GENERATED_BODY()
 public:
 	UExecCal_Damage();
+	void DetermineDebuff(const FGameplayEffectCustomExecutionParameters& ExecutionParams,
+						 const FGameplayEffectSpec& Spec,
+						 FAggregatorEvaluateParameters EvaluationParameters,
+						 const TMap<FGameplayTag, FGameplayEffectAttributeCaptureDefinition>& InTagsToDefs) const;//决定伤害的Debuff
 
 	virtual void Execute_Implementation(const FGameplayEffectCustomExecutionParameters& ExecutionParams,
 		FGameplayEffectCustomExecutionOutput& OutExecutionOutput) const override;

@@ -2,6 +2,63 @@
 #include "GameplayEffectTypes.h"
 #include "AuraAbilityType.generated.h"
 
+class UGameplayEffect;
+
+USTRUCT(BlueprintType)
+struct FDamageEffectParams
+{
+	GENERATED_BODY()
+
+	FDamageEffectParams(){}
+
+	UPROPERTY(BlueprintReadWrite)
+	TObjectPtr<UObject> WorldContextObject = nullptr;
+
+	UPROPERTY(BlueprintReadWrite)
+	TSubclassOf<UGameplayEffect> DamageGameplayEffectClass = nullptr;
+
+	UPROPERTY(BlueprintReadWrite)
+	TObjectPtr<UAbilitySystemComponent> SourceAbilitySystemComponent;
+
+	UPROPERTY(BlueprintReadWrite)
+	TObjectPtr<UAbilitySystemComponent> TargetAbilitySystemComponent;
+
+	UPROPERTY(BlueprintReadWrite)
+	float BaseDamage = 0.f;
+
+	UPROPERTY(BlueprintReadWrite)
+	float AbilityLevel = 1.f;
+
+	UPROPERTY(BlueprintReadWrite)
+	FGameplayTag DamageType = FGameplayTag();
+
+	UPROPERTY(BlueprintReadWrite)
+	float DebuffChance = 0.f;
+
+	UPROPERTY(BlueprintReadWrite)
+	float DebuffDamage = 0.f;
+
+	UPROPERTY(BlueprintReadWrite)
+	float DebuffDuration = 0.f;
+
+	UPROPERTY(BlueprintReadWrite)
+	float DebuffFrequency = 0.f;
+
+	UPROPERTY(BlueprintReadWrite)
+	float DeathImpulseMagnitude = 0.f;		//敌人死亡时被附加的冲量
+	
+	UPROPERTY(BlueprintReadWrite)
+	FVector DeathImpulse = FVector::ZeroVector;
+
+	UPROPERTY(BlueprintReadWrite)
+	float KnockbackForceMagnitude = 0.f;
+
+	UPROPERTY(BlueprintReadWrite)
+	float KnockbackChance = 0.f;
+
+	UPROPERTY(BlueprintReadWrite)
+	FVector KnockbackForce = FVector::ZeroVector;
+};
 
 //GAS自带的上下文不能获取某些自定义的效果，例如是否暴击、是否被格挡等，以其为父类派生出自定自定义的上下文，以满足自定义的需求
 USTRUCT(BlueprintType)
@@ -13,9 +70,23 @@ public:
 
 	bool IsBlocked() const { return bIsBlocked; }
 	bool IsCriticalHit() const { return bIsCriticalHit; }
+	bool IsSuccessfulDebuff() const { return bIsSuccessfulDebuff; }
+	float GetDebuffDamage() const { return DebuffDamage; }
+	float GetDebuffDuration() const { return DebuffDuration; }
+	float GetDebuffFrequency() const { return DebuffFrequency; }
+	TSharedPtr<FGameplayTag> GetDamageType() const { return DamageType; }
+	FVector GetDeathImpulse() const { return DeathImpulse; }
+	FVector GetKnockbackForce() const { return KnockbackForce; }
 
 	void SetIsBlocked(bool Blocked) {bIsBlocked = Blocked;}
 	void SetIsCriticalHit(bool CriticalHit) {bIsCriticalHit = CriticalHit;}
+	void SetIsSuccessfulDebuff(bool bInIsDebuff) { bIsSuccessfulDebuff = bInIsDebuff; }
+	void SetDebuffDamage(float InDamage) { DebuffDamage = InDamage; }
+	void SetDebuffDuration(float InDuration) { DebuffDuration = InDuration; }
+	void SetDebuffFrequency(float InFrequency) { DebuffFrequency = InFrequency; }
+	void SetDamageType(TSharedPtr<FGameplayTag> InDamageType) { DamageType = InDamageType; }
+	void SetDeathImpulse(const FVector& InImpulse) { DeathImpulse = InImpulse; }
+	void SetKnockbackForce(const FVector& InForce) { KnockbackForce = InForce; }
 
 	virtual UScriptStruct* GetScriptStruct() const
 	{
@@ -36,12 +107,32 @@ public:
 
 	virtual bool NetSerialize(FArchive& Ar,class UPackageMap* Map,bool& bOutSuccess);		//此函数在FGameplayEffectContext中也有，这里依据原版实现
 protected:
-
+	//将自定义属性添加到上下文中
 	UPROPERTY()
 	bool bIsBlocked = false;
 
 	UPROPERTY()
 	bool bIsCriticalHit = false;
+	
+	UPROPERTY()
+	bool bIsSuccessfulDebuff = false;
+
+	UPROPERTY()
+	float DebuffDamage = 0.f;
+
+	UPROPERTY()
+	float DebuffDuration = 0.f;
+
+	UPROPERTY()
+	float DebuffFrequency = 0.f;
+
+	TSharedPtr<FGameplayTag> DamageType;
+
+	UPROPERTY()
+	FVector DeathImpulse = FVector::ZeroVector;
+
+	UPROPERTY()
+	FVector KnockbackForce = FVector::ZeroVector;
 };
 
 //这个模板在FGameplayEffectContext中也有实现，同样也是仿造

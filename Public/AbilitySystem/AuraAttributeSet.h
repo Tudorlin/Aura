@@ -60,6 +60,7 @@ public:
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 	virtual void PreAttributeChange(const FGameplayAttribute& Attribute, float& NewValue) override;
 	virtual void PostGameplayEffectExecute(const FGameplayEffectModCallbackData& Data) override;
+	virtual void PostAttributeChange(const FGameplayAttribute& Attribute, float OldValue, float NewValue) override;
 
 	TMap<FGameplayTag,TStaticFunPtr<FGameplayAttribute()>> TagToAttributes;       //本质是GameplayTag与委托的Map
 
@@ -204,7 +205,13 @@ public:
 
     
 private:
+	void HandleIncomingDamage(const FEffectProperties& Props);
+	void HandleIncomingXP(const FEffectProperties& Props);
+	void Debuff(const FEffectProperties& Props);
 	void SetEffectProperties(const FGameplayEffectModCallbackData& Data,FEffectProperties& Props) const;
 	void ShowFloatingText(const FEffectProperties& Props,float Damage,bool bBlocked,bool bCriticalHit) const;
 	void SendXPEvent(const FEffectProperties& Props);		//发送事件到监听GA中接受
+
+	bool bTopOffHealth = false;
+	bool bTopOffMana = false;
 };

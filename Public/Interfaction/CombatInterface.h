@@ -3,12 +3,15 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "AbilitySystemComponent.h"
 #include "GameplayTagContainer.h"
 #include "UObject/Interface.h"
 #include "CombatInterface.generated.h"
 
 enum class ECharacterClass : uint8;
 class UNiagaraSystem;
+
+DECLARE_MULTICAST_DELEGATE_OneParam(FOnASCRegistered, UAbilitySystemComponent*)
 
 USTRUCT(BlueprintType)
 struct FTaggedMontage	//将蒙太奇动画关联到Tag
@@ -56,7 +59,7 @@ public:
 	UFUNCTION(BlueprintNativeEvent,BlueprintCallable)
 	UAnimMontage* GetHitMontage();
 
-	virtual void Die() = 0;
+	virtual void Die(const FVector& DeathImpulse) = 0;
 
 	UFUNCTION(BlueprintCallable,BlueprintNativeEvent)
 	bool IsDead() const;
@@ -81,4 +84,6 @@ public:
 
 	UFUNCTION(BlueprintNativeEvent,BlueprintCallable)
 	ECharacterClass GetCharacterClass();
+
+	virtual FOnASCRegistered GetOnASCRegisteredDelegate() = 0;
 };

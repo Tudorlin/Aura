@@ -11,8 +11,8 @@
 #include "Kismet/KismetSystemLibrary.h"
 
 void UAuraProjectileSpell::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
-                                           const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo,
-                                           const FGameplayEventData* TriggerEventData)
+	const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo,
+		const FGameplayEventData* TriggerEventData)
 {
 	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
 	
@@ -40,30 +40,28 @@ void UAuraProjectileSpell::SpawnProjectile(const FVector& ProjectileTargetLocati
 		Cast<APawn>(GetOwningActorFromActorInfo()),
 		ESpawnActorCollisionHandlingMethod::AlwaysSpawn);
 
-	const UAbilitySystemComponent* SourceASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(GetAvatarActorFromActorInfo());  //获取能力拥有者的能力组件
-	FGameplayEffectContextHandle ContextHandle = SourceASC->MakeEffectContext();		//创建并设置上下文句柄
-	ContextHandle.SetAbility(this);
-	ContextHandle.AddSourceObject(Projectile);
-	TArray<TWeakObjectPtr<AActor>>Actors;
-	Actors.Add(Projectile);
-	ContextHandle.AddActors(Actors);
-	FHitResult HitResult;
-	HitResult.Location = ProjectileTargetLocation;
-	ContextHandle.AddHitResult(HitResult);
-	const FGameplayEffectSpecHandle SpecHandle = SourceASC->MakeOutgoingSpec(DamageEffectsClass,GetAbilityLevel(),ContextHandle);  //通过获取到的能力组件创建一个SpecHandle
-		
-		
-
-	const FAuraGameplayTags GameplayTags = FAuraGameplayTags::Get();
-
-	for(auto Pair : DamageType)
-	{
-		const float ScaleDamage = Pair.Value.GetValueAtLevel(GetAbilityLevel());
-		UAbilitySystemBlueprintLibrary::AssignTagSetByCallerMagnitude(SpecHandle,Pair.Key,ScaleDamage);
-	}
-	//const float ScaledDamage = Damage.GetValueAtLevel(GetAbilityLevel());
-	//UAbilitySystemBlueprintLibrary::AssignTagSetByCallerMagnitude(SpecHandle,GameplayTags.Damage,ScaledDamage);	//将值赋予Tag对应的SetByCaller用于计算
-	Projectile->DamageEffectSpecHandle = SpecHandle;   //将创建的SpecHandle保存在GA中的变量中,将会在Projectile中用于计算伤害
+	//将使用自定义的Apply函数应用GE
+	// const UAbilitySystemComponent* SourceASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(GetAvatarActorFromActorInfo());  //获取能力拥有者的能力组件
+	// FGameplayEffectContextHandle ContextHandle = SourceASC->MakeEffectContext();		//创建并设置上下文句柄
+	// ContextHandle.SetAbility(this);
+	// ContextHandle.AddSourceObject(Projectile);
+	// TArray<TWeakObjectPtr<AActor>>Actors;
+	// Actors.Add(Projectile);
+	// ContextHandle.AddActors(Actors);
+	// FHitResult HitResult;
+	// HitResult.Location = ProjectileTargetLocation;
+	// ContextHandle.AddHitResult(HitResult);
+	// const FGameplayEffectSpecHandle SpecHandle = SourceASC->MakeOutgoingSpec(DamageEffectsClass,GetAbilityLevel(),ContextHandle);  //通过获取到的能力组件创建一个SpecHandle
+	// 	
+	// 	
+	//
+	// const FAuraGameplayTags GameplayTags = FAuraGameplayTags::Get();
+	// const float ScaleDamage = Damage.GetValueAtLevel(GetAbilityLevel());
+	// UAbilitySystemBlueprintLibrary::AssignTagSetByCallerMagnitude(SpecHandle,DamageType,ScaleDamage);
+	// //const float ScaledDamage = Damage.GetValueAtLevel(GetAbilityLevel());
+	// //UAbilitySystemBlueprintLibrary::AssignTagSetByCallerMagnitude(SpecHandle,GameplayTags.Damage,ScaledDamage);	//将值赋予Tag对应的SetByCaller用于计算
+	// Projectile->DamageEffectSpecHandle = SpecHandle;   //将创建的SpecHandle保存在GA中的变量中,将会在Projectile中用于计算伤害
+	Projectile->DamageEffectParams = MakeDamageEffectParamsFromClassDefaults();
 
 	Projectile->FinishSpawning(SpawnTransform);
 	//}

@@ -2,8 +2,11 @@
 
 
 #include "UI/WidgetController/AttributeMenuWidgetController.h"
+
+#include "AbilitySystem/AuraAbilitySystemComponent.h"
 #include "AbilitySystem/AuraAttributeSet.h"
 #include "AbilitySystem/Data/AttributeInfo.h"
+#include "Player/AuraPlayerState.h"
 
 
 void UAttributeMenuWidgetController::BroadcastInitialValue()
@@ -15,14 +18,17 @@ void UAttributeMenuWidgetController::BroadcastInitialValue()
 	{
 		BroadcastAttributeInfo(TagToAttribute.Key,TagToAttribute.Value());
 	}
+
+	//AAuraPlayerState* AuraPlayerState = CastChecked<AAuraPlayerState>(PlayerState);		//封装为基类的私有成员了，改为用函数获取
+	AttributePointChangedDelegate.Broadcast(GetAuraPS()->GetAttributePoint());	//这个广播用于初始化
 }
 
 void UAttributeMenuWidgetController::BindCallbacksDependencies()
 {
-	const UAuraAttributeSet* AS = Cast<UAuraAttributeSet>(AttributesSet);
+	//const UAuraAttributeSet* AS = Cast<UAuraAttributeSet>(AttributesSet);
 	check(AttributeInfo)
 
-	for(auto Pair : AS->TagToAttributes)
+	for(auto Pair : GetAuraAS()->TagToAttributes)
 	{
 		AbilitySystemComponent->GetGameplayAttributeValueChangeDelegate(Pair.Value()).AddLambda(
 			[this,Pair](const FOnAttributeChangeData& Data)
@@ -30,10 +36,22 @@ void UAttributeMenuWidgetController::BindCallbacksDependencies()
 					BroadcastAttributeInfo(Pair.Key,Pair.Value());
 			});
 	}
+	//AAuraPlayerState* AuraPlayerState = CastChecked<AAuraPlayerState>(PlayerState);
+	GetAuraPS()->OnAttributePointChangedDelegate.AddLambda(
+		[this](int32 Points)
+		{
+			AttributePointChangedDelegate.Broadcast(Points);	//这个广播用于处理属性点变化
+		});
+}
+
+void UAttributeMenuWidgetController::UpgradeAttribute(const FGameplayTag AttributeTag)	//蓝图中通过点击事件调用，发送事件并调用角色中的AddToAttributesSpell
+{
+	UAuraAbilitySystemComponent* AuraASC = CastChecked<UAuraAbilitySystemComponent>(AbilitySystemComponent);
+	AuraASC->UpgradeAttribute(AttributeTag);
 }
 
 void UAttributeMenuWidgetController::BroadcastAttributeInfo(const FGameplayTag& AttributeTag,
-	const FGameplayAttribute& Attribute) const
+                                                            const FGameplayAttribute& Attribute) const
 {
 	FAuraAttributeInfo Info=AttributeInfo->FindAttributeInfoForTag(AttributeTag);  //根据属性集中Map的Key在数据资产数组中查找对应的属性信息，此处查找得到的是一个FAuraAttributeInfo结构体
 	Info.AttributeValue = Attribute.GetNumericValue(AttributesSet);  //从属性集中获取值设置到上面获取到的结构体,GetNumericValue函数用于获取指定属性值，无论是数值还是属性数据

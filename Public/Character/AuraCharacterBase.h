@@ -8,6 +8,7 @@
 #include "Interfaction/CombatInterface.h"
 #include "AuraCharacterBase.generated.h"
 
+class UDebuffNiagaraComponent;
 class UNiagaraSystem;
 class UGameplayAbility;
 class UGameplayEffect;
@@ -27,7 +28,7 @@ public:
 	UAttributeSet* GetAttributeSet() const { return AttributeSet; }
 
 	//CombatInterface
-	virtual void Die() override;
+	virtual void Die(const FVector& DeathImpulse) override;
 	virtual FVector GetCombatSocketLocation_Implementation(const FGameplayTag& CombatSocketTag) override;
 	virtual UAnimMontage* GetHitMontage_Implementation() override;
 	virtual bool IsDead_Implementation() const override;
@@ -38,11 +39,12 @@ public:
 	virtual int32 GetMinionCount_Implementation() override;
 	virtual void IncrementMinionCount_Implementation(int32 Amount) override;
 	virtual ECharacterClass GetCharacterClass_Implementation() override;
+	virtual FOnASCRegistered GetOnASCRegisteredDelegate() override;	//返回委托
 	//CombatInterface
-	
+	FOnASCRegistered OnAscRegistered;		//能力组件初始化完成时广播
 
 	UFUNCTION(NetMulticast,Reliable)
-	virtual void MulticastHandleDeath();
+	virtual void MulticastHandleDeath(const FVector& DeathImpulse);
 
 	UPROPERTY(EditAnywhere,Category="Combat")		//角色蓝图类中添加Tag和蒙太奇,通过CombatInterface中的Get函数获取并使用
 	TArray<FTaggedMontage> AttackMontage;
@@ -116,6 +118,9 @@ protected:
 	USoundBase* DeathSound;
 
 	int32 MinionCount = 0;//召唤个数
+
+	UPROPERTY(VisibleAnywhere)
+	TObjectPtr<UDebuffNiagaraComponent> BurnDebuffComponent;	//debuff效果
 
 private:
 	UPROPERTY(EditAnywhere,Category="Abilities")

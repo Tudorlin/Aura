@@ -44,6 +44,8 @@ protected:
 
 	virtual void LevelUp_Implementation() override;		//升级
 	virtual void AddToPlayerLevel_Implementation(int32 InPlayerLevel) override;
+	virtual int32 GetAttributePoints_Implementation() const override;
+	virtual int32 GetSpellPoints_Implementation() const override;
 	/**********PlayerInterface End************/
 
 	UPROPERTY(VisibleAnywhere,BlueprintReadOnly)

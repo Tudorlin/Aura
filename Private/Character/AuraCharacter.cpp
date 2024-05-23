@@ -64,7 +64,8 @@ void AAuraCharacter::InitAbilityActorInfo()
 	Cast<UAuraAbilitySystemComponent>(AuraPlayerState->GetAbilitySystemComponent())->AbilityActorInfoSet();  //转化成Aura能力组件调用信息设置函数
 	AbilitySystemComponent = AuraPlayerState->GetAbilitySystemComponent();  //初始化完成后给character身上的能力组件和属性集赋值。
 	AttributeSet = AuraPlayerState->GetAttributeSet();
-
+	OnAscRegistered.Broadcast(AbilitySystemComponent);
+	
 	if(AAuraPlayerController* AuraPlayerController = Cast<AAuraPlayerController>(GetController())) //getplayercontroll到getHUD进行通信
 	{
 		if(AAuraHUD* AuraHUD = Cast<AAuraHUD>(AuraPlayerController->GetHUD()))
@@ -88,7 +89,7 @@ int32 AAuraCharacter::FindLevelForXP_Implementation(int32 InXP) const
 	return AuraPlayerState->LevelUpInfo->FindLevelForXP(InXP);
 }
 
-int32 AAuraCharacter::GetPlayerLevel_Implementation()
+int32 AAuraCharacter::GetPlayerLevel_Implementation()		//敌人被击杀时通过Props中的SourceCharacter调用这些升级相关的函数
 {
 	const AAuraPlayerState* AuraPlayerState = GetPlayerState<AAuraPlayerState>();
 	check(AuraPlayerState);
@@ -118,12 +119,16 @@ int32 AAuraCharacter::GetSpellPointsReward_Implementation(int32 Level) const
 
 void AAuraCharacter::AddToAttributePoints_Implementation(int32 InAttributePoints)
 {
-	
+	AAuraPlayerState* AuraPlayerState = GetPlayerState<AAuraPlayerState>();
+	check(AuraPlayerState);
+	AuraPlayerState->AddToAttributePoint(InAttributePoints);
 }
 
 void AAuraCharacter::AddToSpellPoints_Implementation(int32 InSpellPoints)
 {
-	
+	AAuraPlayerState* AuraPlayerState = GetPlayerState<AAuraPlayerState>();
+	check(AuraPlayerState);
+	AuraPlayerState->AddToSpellPoint(InSpellPoints);
 }
 
 void AAuraCharacter::AddToXP_Implementation(int32 InXP)
@@ -138,9 +143,27 @@ void AAuraCharacter::AddToPlayerLevel_Implementation(int32 InPlayerLevel)
 	AAuraPlayerState* AuraPlayerState = GetPlayerState<AAuraPlayerState>();
 	check(AuraPlayerState);
 	AuraPlayerState->AddToLevel(InPlayerLevel);
+	if(UAuraAbilitySystemComponent*AuraASC = Cast<UAuraAbilitySystemComponent>(AbilitySystemComponent))
+	{
+		AuraASC->UpdateAbilityStatus(InPlayerLevel);		//每次升级的时候查询是否有技能可以解锁。
+	}
 }
 
-void AAuraCharacter::MulticastLevelUpParticles_Implementation() const
+int32 AAuraCharacter::GetAttributePoints_Implementation() const
+{
+	AAuraPlayerState* AuraPlayerState = GetPlayerState<AAuraPlayerState>();
+	check(AuraPlayerState);
+	return AuraPlayerState->GetAttributePoint();
+}
+
+int32 AAuraCharacter::GetSpellPoints_Implementation() const
+{
+	AAuraPlayerState* AuraPlayerState = GetPlayerState<AAuraPlayerState>();
+	check(AuraPlayerState);
+	return AuraPlayerState->GetSpellPoint();
+}
+
+void AAuraCharacter::MulticastLevelUpParticles_Implementation() const       //播放升级特效
 {
 	if(IsValid(LevelUpNiagaraComponent))
 	{

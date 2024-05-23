@@ -4,11 +4,18 @@
 
 #include "CoreMinimal.h"
 #include "AbilitySystemComponent.h"
-#include "UObject/NoExportTypes.h"
 #include "AuraWidgetController.generated.h"
 
 class UAttributeSet;
 class UAbilitySystemComponent;
+class AAuraPlayerController;
+class AAuraPlayerState;
+class UAuraAbilitySystemComponent;
+class UAuraAttributeSet;
+class UAbilityInfo;
+
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnPlayerStateChangedSignature,int32,NewValue);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FAbilityInfoSignature,const FAuraAbilityInfo&,Info);	//广播技能信息
 
 USTRUCT(BlueprintType)    //创建结构体便于初始化控件控制器
 struct FWidgetControllerParams
@@ -40,11 +47,15 @@ class AURA_API UAuraWidgetController : public UObject
 public:
 	UFUNCTION(BlueprintCallable)
 	void SetWidgetControllerParams(const FWidgetControllerParams& WCParams);  //初始化控制器中的变量
-
+	
 	UFUNCTION(BlueprintCallable)
 	virtual void BroadcastInitialValue();    //广播数值函数
-
 	virtual void BindCallbacksDependencies();
+
+	UPROPERTY(BlueprintAssignable,Category="GAS|Message")		//返回技能图标这类信息,为了复用将此委托移动到基类中
+	FAbilityInfoSignature AbilityInfoDelegate;
+
+	void BroadcastAbilityInfo();
 	
 protected:
 	UPROPERTY(BlueprintReadOnly,Category="WidgetController")
@@ -55,4 +66,26 @@ protected:
 	TObjectPtr<UAbilitySystemComponent>AbilitySystemComponent;
 	UPROPERTY(BlueprintReadOnly,Category="WidgetController")
 	TObjectPtr<UAttributeSet>AttributesSet;
+
+	//技能信息
+	UPROPERTY(EditDefaultsOnly,BlueprintReadOnly,Category="Widget Data")
+	TObjectPtr<UAbilityInfo> AbilityInfo;
+
+	
+	UPROPERTY(BlueprintReadOnly, Category="WidgetController")
+	TObjectPtr<AAuraPlayerController> AuraPlayerController;
+
+	UPROPERTY(BlueprintReadOnly, Category="WidgetController")
+	TObjectPtr<AAuraPlayerState> AuraPlayerState;
+
+	UPROPERTY(BlueprintReadOnly, Category="WidgetController")
+	TObjectPtr<UAuraAbilitySystemComponent> AuraAbilitySystemComponent;
+
+	UPROPERTY(BlueprintReadOnly, Category="WidgetController")
+	TObjectPtr<UAuraAttributeSet> AuraAttributeSet;
+
+	AAuraPlayerController* GetAuraPC();
+	AAuraPlayerState* GetAuraPS();
+	UAuraAbilitySystemComponent* GetAuraASC();
+	UAuraAttributeSet* GetAuraAS();
 };

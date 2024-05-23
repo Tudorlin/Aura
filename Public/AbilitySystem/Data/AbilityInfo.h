@@ -7,11 +7,12 @@
 #include "Engine/DataAsset.h"
 #include "AbilityInfo.generated.h"
 
+class UGameplayAbility;
 /**
  * 
  */
 USTRUCT(BlueprintType)
-struct FAuraAbilityInfo	//能力的信息，暂用于UI通信
+struct FAuraAbilityInfo	//技能的信息
 {
 	GENERATED_BODY()
 
@@ -21,14 +22,27 @@ struct FAuraAbilityInfo	//能力的信息，暂用于UI通信
 	UPROPERTY(BlueprintReadOnly)
 	FGameplayTag InputTag = FGameplayTag();
 
+	UPROPERTY(BlueprintReadOnly)
+	FGameplayTag StatusTag = FGameplayTag();		//技能状态Tag
+
 	UPROPERTY(EditDefaultsOnly,BlueprintReadOnly)
 	TObjectPtr<const UTexture2D> Icon = nullptr;		//技能图标
+
+	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)		//技能类型,主动还是被动
+	FGameplayTag AbilityType = FGameplayTag();
 
 	UPROPERTY(EditDefaultsOnly,BlueprintReadOnly)
 	TObjectPtr<const UMaterialInstance> BackGroundMaterial = nullptr;		//图标背景
 
 	UPROPERTY(EditDefaultsOnly,BlueprintReadOnly)
 	FGameplayTag CoolDownTag = FGameplayTag();
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)		//技能需要的等级
+	int32 LevelRequirement = 1;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)		//技能本身
+	TSubclassOf<UGameplayAbility> Ability;
 };
 
 UCLASS()

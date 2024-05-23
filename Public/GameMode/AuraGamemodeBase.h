@@ -7,6 +7,7 @@
 #include "AuraGamemodeBase.generated.h"
 
 class UCharacterClassInfo;
+class UAbilityInfo;
 /**
  * 
  */
@@ -17,4 +18,7 @@ class AURA_API AAuraGamemodeBase : public AGameModeBase
 public:
 	UPROPERTY(EditDefaultsOnly,Category="CharacterClassInfo")		//敌人属性初始化用的数据资产
 	TObjectPtr<UCharacterClassInfo> CharacterClassInfo;
+	
+	UPROPERTY(EditAnywhere,Category="Ability Info")		//另外在AuraWidgetController中也有相同的变量
+	TObjectPtr<UAbilityInfo> AbilityInfo;
 };

@@ -27,6 +27,9 @@ protected:
 	UPROPERTY(EditDefaultsOnly,BlueprintReadOnly)   
 	TSubclassOf<AAuraProjectile> ProjectileClass;
 
+	UPROPERTY(EditDefaultsOnly)
+	int32 NumProjectiles = 5;
+	
 	// UPROPERTY(EditDefaultsOnly,BlueprintReadOnly)
 	// TSubclassOf<UGameplayEffect> DamageEffectClass;	//需要对伤害类型做出区别,无需传入单一的GE了
 };

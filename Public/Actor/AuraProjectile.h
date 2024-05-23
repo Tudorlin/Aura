@@ -4,7 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
-#include "GameplayEffectTypes.h"
+#include "AuraAbilityType.h"
 #include "AuraProjectile.generated.h"
 
 
@@ -23,11 +23,12 @@ public:
 	UPROPERTY(VisibleAnywhere)
 	TObjectPtr<UProjectileMovementComponent> ProjectileMovement;
 
-	UPROPERTY(BlueprintReadWrite, meta = (ExposeOnSpawn = true))		//可以通过这玩意获取Avatar的信息
-	FGameplayEffectSpecHandle DamageEffectSpecHandle;
+	UPROPERTY(BlueprintReadWrite, meta = (ExposeOnSpawn = true))		
+	FDamageEffectParams DamageEffectParams;
 
 protected:
 	virtual void BeginPlay() override;
+	void OnHit();
 	virtual void Destroyed() override;
 
 	UFUNCTION()

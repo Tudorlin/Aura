@@ -42,14 +42,19 @@ void AAuraProjectile::BeginPlay()
 	LoopingSoundComponent = UGameplayStatics::SpawnSoundAttached(LoopingSound,GetRootComponent());
 }
 
+void AAuraProjectile::OnHit()
+{
+	UGameplayStatics::PlaySoundAtLocation(this,ImpactSound,GetActorLocation(),FRotator::ZeroRotator);
+	UNiagaraFunctionLibrary::SpawnSystemAtLocation(this,ImpactEffect,GetActorLocation());
+	if(LoopingSoundComponent) LoopingSoundComponent->Stop();
+	bHit = true;
+}
+
 void AAuraProjectile::Destroyed()    //生命周期结束之后会自动调用
 {
 	if(!bHit&&!HasAuthority())     //这些音效之类的东西不需要在服务器上触发
 	{
-		UGameplayStatics::PlaySoundAtLocation(this,ImpactSound,GetActorLocation(),FRotator::ZeroRotator);
-		UNiagaraFunctionLibrary::SpawnSystemAtLocation(this,ImpactEffect,GetActorLocation());
-		if(LoopingSoundComponent) LoopingSoundComponent->Stop();
-		bHit = true;
+		OnHit();
 	}
 	Super::Destroyed();
 }
@@ -57,33 +62,32 @@ void AAuraProjectile::Destroyed()    //生命周期结束之后会自动调用
 void AAuraProjectile::OnSphereOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
                                       UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
-	if(!DamageEffectSpecHandle.Data.IsValid()||DamageEffectSpecHandle.Data.Get()->GetContext().GetEffectCauser()==OtherActor)
-	{
-		return;
-	}
-	if(!UAuraAbilitySystemLibrary::IsNotFriend(DamageEffectSpecHandle.Data.Get()->GetContext().GetEffectCauser(),OtherActor))
-	{
-		return;	//忽略友伤
-	}
-	if(!bHit)
-	{
-		UGameplayStatics::PlaySoundAtLocation(this,ImpactSound,GetActorLocation(),FRotator::ZeroRotator);  //命中时播放音效和粒子效果并触发销毁操作,注意不是重写的Destroyed()
-		UNiagaraFunctionLibrary::SpawnSystemAtLocation(this,ImpactEffect,GetActorLocation());
-		if(LoopingSoundComponent) LoopingSoundComponent->Stop();
-		bHit = true;
-	}
+	AActor* SourceAvatarActor = DamageEffectParams.SourceAbilitySystemComponent->GetAvatarActor();
+	if(SourceAvatarActor == OtherActor) return;	//与自己重叠时忽略
+	if(!UAuraAbilitySystemLibrary::IsNotFriend(SourceAvatarActor,OtherActor)) return;	//忽略友商
+	if(!bHit) OnHit();	//未命中时触发
 	if(HasAuthority())
 	{
 		if(UAbilitySystemComponent* TargetASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(OtherActor))  //应用效果在重叠Actor的能力组件上
 		{
-			TargetASC->ApplyGameplayEffectSpecToSelf(*DamageEffectSpecHandle.Data.Get());
+			const FVector DeathImpulse = GetActorForwardVector() * DamageEffectParams.DeathImpulseMagnitude;
+			DamageEffectParams.DeathImpulse = DeathImpulse;			//设置冲量
+			const bool bKnockback = FMath::RandRange(1, 100) < DamageEffectParams.KnockbackChance;
+			if (bKnockback)
+			{
+				FRotator Rotation = GetActorRotation();
+				Rotation.Pitch = 45.f;
+
+				const FVector KnockbackDirection = Rotation.Vector();
+				const FVector KnockbackForce = KnockbackDirection * DamageEffectParams.KnockbackForceMagnitude;
+				DamageEffectParams.KnockbackForce = KnockbackForce;
+			}
+			DamageEffectParams.TargetAbilitySystemComponent = TargetASC;
+			UAuraAbilitySystemLibrary::ApplyDamageEffect(DamageEffectParams);
 		}
 		Destroy();
 	}
-	else
-	{
-		bHit = true;
-	}
+	else bHit = true;
 }
 
 
